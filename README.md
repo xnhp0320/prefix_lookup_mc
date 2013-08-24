@@ -8,11 +8,11 @@ prefix_lookup_mc
 
 *It can be used for both IPv4 and IPv6 lookup 
 
-Performance: 5.3Gbps for low locality IP traces on a single Intel Xeon Core
+	Performance: 5.3Gbps for low locality IP traces on a single Intel Xeon Core
 
 *It support Incremental Update
 
-Support dynamic network environment
+	Support dynamic network environment
 
 
 *Example:
@@ -43,9 +43,13 @@ Test on Intel E5506.
      5Gbps for 64 Byte packets.
      
 Memory Size: 
-
-	 16MB on 64-bit platform for 350K core router prefixes.
-     5.4 MB used for lookup data structure.
-     11.6MB used for an aid data structure for update.
+	
+	16MB on 64-bit platform for 350K core router prefixes.
+	5.4 MB used for lookup data structure.
+	11.6MB used for an aid data structure for update.
      
      
+Notes: 
+	
+	This lookup engine utilizes the SSE instructions. 
+	Please fix the Makefile the compile options: -msse4.* acorrding to your own machine configuration.
