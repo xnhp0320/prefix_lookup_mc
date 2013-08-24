@@ -1,7 +1,7 @@
 #ifdef TEST_CHECK
 #include "bitmap_v6.h"
 #include "bitmap_v4.h"
-#include "fast_lookup.h"
+//#include "fast_lookup.h"
 #include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -684,9 +684,9 @@ void test_one_prefix()
 
 int main()
 {
-    fast_table_init();
+    //fast_table_init();
     ipv4_test();
-    //ipv6_test();
+    ipv6_test();
     //test_one_prefix();
 
     return 0;

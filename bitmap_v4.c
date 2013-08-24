@@ -6,6 +6,7 @@
 #include "mb_node.h"
 #include "hash.h"
 #include "hmap.h"
+#include "fast_lookup.h"
 #include <arpa/inet.h>
 
 
@@ -15,6 +16,9 @@ int init_lookup_trie(struct lookup_trie *trie)
         printf("Wrong argument\n");
         return -1;
     }
+
+    fast_table_init();
+
     trie->init = (struct init_node_v6*)calloc(1,(1 << INITIAL_BITS) * sizeof(struct init_node_v6));
 
     trie->up_aux.external= 0;
@@ -110,7 +114,8 @@ void insert_entry(
 //ip = 192.168.1.0
 //cidr = 24
 //the unmask part of ip need to be zero
-//
+//for exmaple input ip = 192.168.1.1 cidr = 24 is illegal, 
+//will cause a segfault
 //
 
 void insert_prefix(struct lookup_trie *trie, uint32_t ip, int cidr, struct next_hop_info *nhi)

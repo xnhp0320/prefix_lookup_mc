@@ -16,6 +16,7 @@ int init_lookup_trie_v6(struct lookup_trie_v6 *trie)
         return -1;
     }
     trie->init = (struct init_node_v6*)calloc(1,(1 << INITIAL_BITS_v6) * sizeof(struct init_node_v6));
+    fast_table_init();
 
     trie->up_aux.external= 0;
     trie->up_aux.internal= 0;
@@ -83,7 +84,7 @@ static INLINE void rshift_ipv6(struct ip_v6 *ip, uint8_t bits)
 
 //notes: cidr > 0 
 //if cidr == 0, then the ip must be 0
-//or something terrible will happaned
+//or something terrible will happan
 //this is due to a strange implementation
 //that ip32<<32 == ip32 ip64 << 64 == ip64
 static void insert_entry(
@@ -149,7 +150,7 @@ static void insert_entry(
 }
 
 
-//assume the init table is completed
+//SAME: assume the init table is completed
 //ip = 192.168.1.0
 //cidr = 24
 //the unmask part of ip need to be zero
