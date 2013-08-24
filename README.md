@@ -31,14 +31,14 @@ Check function ipv4_test() and ipv6_test in main.c for details.
 
 
 Performance
-Test on Intel E5506, 
-     2.3GHz 256K L1 Cache, 1M L2 Cache, 4M L3 Cache
+Test on Intel E5506.
+     2.3GHz 256K L1 Cache, 1M L2 Cache, 4M L3 Cache.
      127ns/lookup for 1M low locality IP traces.
-     7Mpps for 64 byte packets
+     7Mpps for 64 byte packets.
      5Gbps for 64 Byte packets.
      
 Memory Size: 16MB on 64-bit platform for 350K core prefixes.
-     5.4 MB used for lookup data structure
-     11.6MB used for an aid data structure for update
+     5.4 MB used for lookup data structure.
+     11.6MB used for an aid data structure for update.
      
      
