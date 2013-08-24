@@ -51,5 +51,9 @@ Memory Size:
      
 Notes: 
 	
-	This lookup engine utilizes the SSE instructions. 
+	*This lookup engine utilizes the SSE instructions. 
 	Please fix the Makefile the compile options: -msse4.* acorrding to your own machine configuration.
+	
+	*USE_MM will ultize the page coloring technique and huge page to optimize the lookup performance. 
+	 you need to turn on the huge page features before using it. 
+	 check the mm.* for details. 
