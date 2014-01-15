@@ -1,5 +1,5 @@
 CC=gcc
-CPPFLAGS=-Wall -g  -DTEST_CHECK -msse4.2 -O2
+CPPFLAGS=-Wall -g  -DTEST_CHECK -msse4.2
 
 SOURCE=$(wildcard *.c)
 SOURCE_DEP=$(subst .c,.o,$(SOURCE))

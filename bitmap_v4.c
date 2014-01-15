@@ -848,7 +848,12 @@ void print_mb_node(struct mb_node_v6 *node, uint32_t ip, uint32_t cidr,
     print_mb_node_iter(&tmp, ip, LENGTH-INITIAL_BITS, INITIAL_BITS, print_next_hop);
 }
 
-void print_prefix(struct lookup_trie *trie, void (*print_next_hop)(struct next_hop_info *nhi))
+void print_all_prefix(struct lookup_trie *trie, void (*print_next_hop)(struct next_hop_info *nhi)) 
+{
+    print_mb_node_iter(&trie->up_aux, 0, LENGTH, 0, print_next_hop); 
+}
+
+void print_valid_prefix(struct lookup_trie *trie, void (*print_next_hop)(struct next_hop_info *nhi))
 {
     int i;
     uint32_t ip = 0;

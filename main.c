@@ -16,7 +16,7 @@
 void print_nhi(struct next_hop_info *nhi)
 {
     uint64_t key = (uint64_t)nhi;
-    printf("%lu\n", key);
+    printf("%lu", key);
 }
 
 int del_routes(struct lookup_trie *trie, FILE *fp)
@@ -197,6 +197,34 @@ int del_routes_v6(struct lookup_trie_v6 *trie, FILE *fp)
     }
 
     return 0;    
+}
+
+int load_fib(struct lookup_trie *trie, FILE *fp)
+{
+    int i = 0;
+    char *line = NULL;
+    ssize_t read = 0;
+    size_t len = 0;
+    
+    uint32_t ip = 0;
+    uint32_t cidr;
+    uint64_t key = 1;
+
+    while((read = getline(&line, &len, fp)) != -1){
+        uint32_t ip1,ip2,ip3,ip4,port;
+        if((sscanf(line, "%d.%d.%d.%d/%d\t%d",&ip1, &ip2, &ip3, &ip4, &cidr, &port)) !=6 ) {
+            printf("fib format error\n");
+            exit(-1);
+        }
+        ip = (ip1<<24) + (ip2<<16) + (ip3<<8) + ip4;
+        insert_prefix(trie, ip, cidr, (struct next_hop_info*)key);
+        key++;
+        i++;
+    }
+
+    printf("load routes %d\n", i );
+    return i ;
+ 
 }
 
 int load_routes(struct lookup_trie *trie, FILE *fp)
@@ -601,7 +629,8 @@ void test_random_ips(struct lookup_trie *trie)
 
 void ipv4_test()
 {
-    FILE *fp = fopen("ret_5","r");
+    FILE *fp = fopen("rrc00(2013080808).txt.port","r");
+    //FILE *fp = fopen("ret_5","r");
     if (fp == NULL)
         exit(-1);
     
@@ -612,17 +641,18 @@ void ipv4_test()
 
     init_lookup_trie(&trie);
 
-    load_routes(&trie, fp);
+    //load_routes(&trie, fp);
+    load_fib(&trie, fp);
 
     level_memory(&trie);
-    test_lookup_valid(&trie);
+    //test_lookup_valid(&trie);
     //mem_alloc_stat_v6();
 
     //rewind(fp);
     //del_routes(&trie,fp);
 
-    //print_prefix(&trie, print_nhi);
-    test_random_ips(&trie);
+    //print_all_prefix(&trie, print_nhi);
+    //test_random_ips(&trie);
     destroy_trie(&trie, NULL);
     //mc_profile(&trie.mm);
     

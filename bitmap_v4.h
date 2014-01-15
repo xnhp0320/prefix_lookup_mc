@@ -45,13 +45,14 @@ void delete_prefix(struct lookup_trie *trie, uint32_t ip, int cidr,
 
 //return 1 means the prefix exists.
 int prefix_exist(struct lookup_trie *trie, uint32_t ip, uint8_t cidr);
-void print_prefix(struct lookup_trie *trie, void (*print_next_hop)(struct next_hop_info *nhi));
+void print_valid_prefix(struct lookup_trie *trie, void (*print_next_hop)(struct next_hop_info *nhi));
 void destroy_trie(struct lookup_trie *trie, void (*destroy_nhi)(struct next_hop_info* nhi));
 void mem_alloc_stat();
 
 void mem_op();
 
 void level_memory(struct lookup_trie *trie);
+void print_all_prefix(struct lookup_trie *trie, void (*print_next_hop)(struct next_hop_info *nhi));
 #define USE_LAZY
 //#define UP_STATS
 //#define USE_MM

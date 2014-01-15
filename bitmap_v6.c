@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "bitmap_v6.h"
 #include "mb_node.h"
+#include "fast_lookup.h"
 #include "hash.h"
 #include "hmap.h"
 #include <arpa/inet.h>
@@ -974,6 +975,12 @@ static void print_mb_node(struct mb_node_v6 *node, struct ip_v6 ip, uint32_t cid
     //tmp.internal &= (~( 1ULL << (count_inl_bitmap(0,0))));
 
     print_mb_node_iter(&tmp, ip, LENGTH_v6-INITIAL_BITS_v6, INITIAL_BITS_v6, print_next_hop);
+}
+
+void print_all_prefix_v6(struct lookup_trie_v6 *trie, void (*print_next_hop)(struct next_hop_info *nhi)) 
+{
+    struct ip_v6 nullip = {0, 0};
+    print_mb_node_iter(&trie->up_aux, nullip, LENGTH_v6, 0, print_next_hop);  
 }
 
 void print_prefix_v6(struct lookup_trie_v6 *trie, void (*print_next_hop)(struct next_hop_info *nhi))
