@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "bitmap_v6.h"
 #include "mb_node.h"
+#include "fast_lookup.h"
 #include "hash.h"
 #include "hmap.h"
 #include <arpa/inet.h>
