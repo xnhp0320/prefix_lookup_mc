@@ -659,7 +659,7 @@ struct lazy_travel {
     uint32_t stride;
 };
 
-static struct lazy_travel lazy_mark[LEVEL]; 
+static __thread struct lazy_travel lazy_mark[LEVEL]; 
 
 static struct next_hop_info * do_search_lazy(struct mb_node_v6 *n, uint32_t ip)
 {
@@ -1091,8 +1091,6 @@ void level_memory(struct lookup_trie *trie)
     }
 
     printf("total memory %.2fM\n", total/(1024*1024.0));
-
-    
 }
 
 

@@ -730,7 +730,7 @@ struct lazy_travel_v6 {
     uint32_t stride;
 };
 
-static struct lazy_travel_v6 lazy_mark[LEVEL_v6]; 
+static __thread struct lazy_travel_v6 lazy_mark[LEVEL_v6]; 
 
 //for accelerating, using pointer
 static INLINE struct next_hop_info * do_search_lazy(struct mb_node_v6 *n, struct ip_v6 *ip)
