@@ -1,7 +1,7 @@
 prefix_lookup_mc
 ================
 
-xnhp0320@gmail.com
+Any problem, drop the email at: xnhp0320@gmail.com
 
 *A high performance IP lookup engine based on the Tree Bitmap Algorithm.
 
@@ -57,5 +57,5 @@ Notes:
 	Please fix the Makefile the compile options: -msse4.* acorrding to your own machine configuration.
 	
 	*USE_MM will ultize the page coloring technique and huge page to optimize the lookup performance. 
-	 you need to turn on the huge page features before using it. 
-	 check the mm.* for details. 
+	 you need to turn on the huge page on your server before using it. 
+	 check the mm.cc for details. 
