@@ -878,7 +878,8 @@ void print_valid_prefix(struct lookup_trie *trie, void (*print_next_hop)(struct 
 
         ip = (i)<< (LENGTH-INITIAL_BITS);
         cidr = (trie->init)[i].flags >> PREFIX_HI;
-        ip = ip & (0xFFFFFFFF << (LENGTH-cidr));
+        if(cidr != 0)
+            ip = ip & (0xFFFFFFFF << (LENGTH-cidr));
 
         if ( (trie->init)[i].flags & INIT_HAS_A_CHILD){
             print_mb_node(&(trie->init)[i].e.node, ip, cidr, print_next_hop, &print_ht);
