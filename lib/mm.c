@@ -49,8 +49,7 @@ int add_allocator(struct mem_op *op)
 
 int mm_init(struct mm *m, int type)
 {
-    m->ms.mem = 0;
-    m->ms.node = 0;
+    memset(&m->ms, 0, sizeof(m->ms));
     m->op = find_allocator(type);
     assert(m->op);
     int ret = 0;

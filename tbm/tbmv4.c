@@ -24,7 +24,7 @@ int tbm_init_trie(struct tbm_trie *trie)
         perror("no memory:");
         exit(-1);
     }
-
+    
     mm_init(&trie->m, MEM_ALLOC_SIMPLE);
     mm_init(&trie->up_m, MEM_ALLOC_SIMPLE);
 
@@ -282,16 +282,50 @@ void * tbm_search(struct tbm_trie *trie, uint32_t ip)
     struct init_node *n = &((trie->init)[ip>>(LENGTH - INITIAL_BITS)]);
     //printf("1 %p\n",n);
 
-    if ( n->flags & INIT_HAS_A_CHILD ) {
+    if (likely(n->flags & INIT_HAS_A_CHILD)) {
         return bitmap_do_search_lazy(&(n->e.node), (uint32_t)(ip<<INITIAL_BITS));
     }
-    else if ( n->flags >> PREFIX_HI) {
+    else {
 //        printf("depth 1\n");
         return (n->e).ptr;
     }
-    else {
-//       printf("depth 1\n");
-        return NULL;
+}
+
+void tbm_search_batch(struct tbm_trie *trie, uint32_t ip[BATCH], void *ret[BATCH], int cnt) 
+{
+    int i; 
+    struct init_node *node[BATCH];
+    struct mb_node *mb_n[BATCH];
+    uint32_t mb_ip[BATCH];
+    uint32_t mb_cnt = 0;
+    void* mb_ret[BATCH];
+    int j = 0;
+
+
+
+    for(i=0; i < cnt; i++) {
+        node[i] = &((trie->init)[ip[i]>>(LENGTH - INITIAL_BITS)]);
+        __builtin_prefetch(node[i]);
+    }
+
+    for(i=0; i < cnt; i++) {
+        if(likely(node[i]->flags & INIT_HAS_A_CHILD)) {
+            mb_ip[mb_cnt] = ip[i] << INITIAL_BITS;
+            mb_n[mb_cnt] = &(node[i]->e.node);
+            mb_cnt ++;
+        }
+        else {
+            ret[i] = node[i]->e.ptr;
+        }
+    }
+
+    bitmap_do_search_lazy_batch(mb_n, mb_ip, mb_ret, mb_cnt);
+
+    
+    for(i=0; i < cnt; i++) {
+        if(likely(node[i]->flags & INIT_HAS_A_CHILD)) {
+            ret[i] = mb_ret[j++];
+        }
     }
 }
 

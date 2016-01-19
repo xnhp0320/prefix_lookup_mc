@@ -198,6 +198,43 @@ void * bitmap_do_search(struct mb_node *n, uint32_t ip)
 
 
 static __thread struct lazy_travel lazy_mark[LEVEL]; 
+#if 0
+void *bitmap_do_search_lazy(struct mb_node *n, uint32_t ip)
+{
+    uint8_t stride;
+    int pos;
+    void **longest = NULL;
+    int travel_depth = -1;
+
+    stride = ip >> (LENGTH - STRIDE);
+    while(likely(test_bitmap(n->external, count_enl_bitmap(stride)))) {
+        travel_depth++;
+        lazy_mark[travel_depth].lazy_p = n;
+        lazy_mark[travel_depth].stride = stride;
+        n = (struct mb_node*)n->child_ptr 
+            + count_ones(n->external, count_enl_bitmap(stride));
+        ip = (uint32_t)(ip << STRIDE);
+        stride = ip >> (LENGTH - STRIDE);
+    }
+
+    pos = tree_function(n->internal, stride);
+    if (pos != -1) {
+        longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+        return (longest == NULL)?NULL:*longest;
+    }
+
+    for(;travel_depth>=0;travel_depth --) {
+        n = lazy_mark[travel_depth].lazy_p;
+        stride = lazy_mark[travel_depth].stride;
+        pos = tree_function(n->internal, stride);
+        if (pos != -1) {
+            longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+            return (longest == NULL)?NULL:*longest;
+        }
+    }
+    return NULL;
+}
+#endif
 
 void *bitmap_do_search_lazy(struct mb_node *n, uint32_t ip)
 {
@@ -241,30 +278,32 @@ out:
     return (longest == NULL)?NULL:*longest;
 }
 
-
+//code has bug
 static __thread struct lazy_travel lazy_mark_batch[BATCH][LEVEL];
 
 void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH], 
-        uint32_t ip[BATCH], void *ret[BATCH])
+        uint32_t ip[BATCH], void *ret[BATCH], int cnt)
 {
     uint8_t stride[BATCH];
     int pos[BATCH];
-    int finish = 0;
+    //max batch is 64
+    uint64_t endcnt = 0;
 
     void **longest[BATCH];
-    memset(longest, 0, sizeof(void**) * BATCH);
+    memset(longest, 0, sizeof(void**) * cnt);
 
-    int travel_depth[BATCH];
-    memset(travel_depth, 0, sizeof(int) *BATCH);
     int i = 0;
+    int travel_depth[BATCH];
+    memset(travel_depth, 0, sizeof(int) * cnt);
 
+    //stage 0 
+    for(i = 0; i < cnt; i++)  {
+        stride[i] = ip[i] >> (LENGTH - STRIDE);
+    }
 
-    for (;finish < BATCH;) {
-
-        for(; i< BATCH; i++ ) {
-
-            stride[i] = ip[i] >> (LENGTH - STRIDE);
-
+    //stage 1 
+    for(;endcnt != ((1ULL << cnt) -1);)  {
+        for(i = 0; i < cnt; i++) {
             if (likely(test_bitmap(n[i]->external, count_enl_bitmap(stride[i])))) {
                 lazy_mark_batch[i][travel_depth[i]].lazy_p = n[i];
                 lazy_mark_batch[i][travel_depth[i]].stride = stride[i];
@@ -273,34 +312,37 @@ void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH],
                 n[i] = (struct mb_node*)n[i]->child_ptr 
                     + count_ones(n[i]->external, count_enl_bitmap(stride[i]));
                 ip[i] = (uint32_t)(ip[i] << STRIDE);
+                stride[i] = ip[i] >> (LENGTH - STRIDE);
                 __builtin_prefetch(n[i]); 
             }
             else {
-
-                pos[i] = tree_function(n[i]->internal, stride[i]);
-                if (pos[i] != -1) {
-                    longest[i] = (void**)n[i]->child_ptr - 
-                        count_ones(n[i]->internal, pos[i]) - 1;
-                    goto fin;
-                }
-
-                for(travel_depth[i] --; travel_depth[i]>=0;travel_depth[i] --) {
-                    n[i] = lazy_mark_batch[i][travel_depth[i]].lazy_p;
-                    stride[i] = lazy_mark_batch[i][travel_depth[i]].stride;
-                    pos[i] = tree_function(n[i]->internal, stride[i]);
-                    if (pos[i] != -1) {
-                        longest[i] = (void**)n[i]->child_ptr - 
-                            count_ones(n[i]->internal, pos[i]) - 1;
-                        goto fin;
-                    }
-                }
-fin:
-                ret[i] = (longest[i] == NULL)? NULL: *longest[i];
-                finish++;
+                endcnt |= (1ULL << i);
             }
         }
     }
+    //stage 2 
+    for(i = 0; i < cnt; i++) {
+        pos[i] = tree_function(n[i]->internal, stride[i]);
+        if (pos[i] != -1) {
+            longest[i] = (void**)n[i]->child_ptr - 
+                count_ones(n[i]->internal, pos[i]) - 1;
+            ret[i] = (longest[i] == NULL)? NULL: *longest[i];
+            continue;
+        }
 
+        for(travel_depth[i] -- ; travel_depth[i]>=0;travel_depth[i] --) {
+            n[i] = lazy_mark_batch[i][travel_depth[i]].lazy_p;
+            stride[i] = lazy_mark_batch[i][travel_depth[i]].stride;
+            pos[i] = tree_function(n[i]->internal, stride[i]);
+            if (pos[i] != -1) {
+                longest[i] = (void**)n[i]->child_ptr - 
+                    count_ones(n[i]->internal, pos[i]) - 1;
+                goto out;
+            }
+        }
+out:
+        ret[i] = (longest[i] == NULL)? NULL: *longest[i];
+    }
 }
 
 

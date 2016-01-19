@@ -3,8 +3,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <arpa/inet.h>
+#include <time.h>
 #include "bitmap_v4.h"
 #include "bitmap_v6.h"
+
+
+#define RAND_SIZE 1000000
 
 void print_nhi(void *nhi)
 {
@@ -172,6 +176,84 @@ int load_routes(struct mb_node *root, struct mm *m, FILE *fp)
     return i/2 ;
 }
 
+#if 1
+void test_lookup_valid_batch(struct mb_node *root) 
+{
+    FILE *fp = fopen("ret_5","r");
+    if (fp == NULL)
+        exit(-1);
+
+    int i = 0;
+
+    char *line = NULL;
+    ssize_t read = 0;
+    size_t len = 0;
+
+    uint32_t *ips = (uint32_t *)malloc(1000000 * sizeof(uint32_t));
+    uint32_t ip;
+    uint32_t key = 1;
+
+    while((read = getline(&line, &len, fp)) != -1){
+        if (i & 0x01) {
+        }
+        else {
+            //printf("line %s", line);
+            ip = inet_network(line);
+            ips[i/2] = ip;
+        }
+        i++;
+    }
+    int ip_cnt = i/2;
+
+
+    int cnt=0;
+    void *ret[BATCH];
+    struct mb_node *node[BATCH];
+    int j;
+
+    for (i = 0; i + BATCH < ip_cnt ;i+=BATCH){
+        for(j = 0; j < BATCH; j++) {
+            node[j] = root;
+        }
+
+        //if (ips[i] == 0x7a99ff00) {
+        //    printf("here\n");
+        //}
+        //struct next_hop_info *a = hash_trie_search(ips[i]);
+        
+        if(i == 32) {
+            printf("here\n");
+        }
+
+        bitmap_do_search_lazy_batch(node, ips + i, ret, BATCH);
+        
+        for(j = 0; j < BATCH; j++ ) {
+            uint32_t b = (uint32_t)(uint64_t)ret[j];
+            if ( b == key ) {
+                cnt ++;
+            }
+            else {
+                //struct in_addr addr;
+                //addr.s_addr = htonl(array[i].test_ip);
+
+
+                printf("search(0x%x); result %d; i %d\n", ips[i + j], b ,i+j);
+                //printf("the truth is ip_test %s  key %d ip %x\n", inet_ntoa(addr),array[i].key*2, array[i].ip);
+            }
+            //printf("search(0x%x);\n", array[i].ip);
+
+            //printf("search(0x%x); reulst %x\n", array[i].ip, b);
+            key ++;
+        }
+    }
+
+    printf("match %d\n", cnt);
+    fclose(fp);
+    free(ips);
+    //mem_usage(&trie->mm);
+}
+#endif
+
 void test_lookup_valid(struct mb_node *root) 
 {
     FILE *fp = fopen("ret_5","r");
@@ -233,6 +315,75 @@ void test_lookup_valid(struct mb_node *root)
     //mem_usage(&trie->mm);
 }
 
+void test_random_ips(struct mb_node *root)
+{
+    FILE *fp = fopen("ret_5","r");
+    if (fp == NULL)
+        exit(-1);
+
+    char *line = NULL;
+    ssize_t read = 0;
+    size_t len = 0;
+    int cnt = 0;
+    int i = 0;
+    uint32_t ip;
+
+    uint32_t *random_ips = (uint32_t *)malloc(RAND_SIZE * sizeof(uint32_t));
+    uint32_t *ips = (uint32_t *)malloc(RAND_SIZE * sizeof(uint32_t));
+
+    while((read = getline(&line, &len, fp)) != -1){
+        if (i & 0x01) {
+            //if (i == 201863){
+            //    printf("here\n");
+            //}
+            
+            //printf("cidr %d, key %d\n",array[i/2].cidr, array[i/2].key);
+        }
+        else {
+            ip = inet_network(line);
+            ips[i/2] = ip;
+        }
+        //printf("line %s", line);
+        
+        i++;
+        //if (i == 8179) {
+        //    printf("here\n");
+        //}
+    }
+    cnt = i/2;
+
+
+    for (i=0;i<RAND_SIZE;i++){
+        random_ips[i] = ips[random()%cnt];
+    }
+    free(ips);
+
+    struct timespec tp_b;
+    struct timespec tp_a;
+
+    //int j;
+    //for (j=0;j<10;j++){
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_b);
+
+    for (i=0;i<RAND_SIZE;i++){
+        bitmap_do_search_lazy(root, random_ips[i]);
+        //hash_trie_search(random_ips[i]);
+        //compact_search(random_ips[i]);
+    }
+ 
+    clock_gettime(CLOCK_MONOTONIC, &tp_a);
+    long nano = (tp_a.tv_nsec > tp_b.tv_nsec) ? (tp_a.tv_nsec -tp_b.tv_nsec) : (tp_a.tv_nsec - tp_b.tv_nsec + 1000000000ULL);
+    printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
+    printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
+    printf("nano %ld\n", nano);
+    printf("per lookup %.2f, speed %.2f\n", (double)nano/RAND_SIZE, 1e9/((double)nano/RAND_SIZE));
+    //}
+    free(random_ips);
+    fclose(fp);
+
+}
+
 
 void ipv4_test()
 {
@@ -252,6 +403,8 @@ void ipv4_test()
     //load_fib(&trie, fp);
 
     test_lookup_valid(&root);
+    test_lookup_valid_batch(&root);
+    test_random_ips(&root);
     //mem_alloc_stat_v6();
 
     //rewind(fp);
@@ -259,7 +412,6 @@ void ipv4_test()
     //bitmap_print_all_prefix(&root, print_nhi);
     mm_profile(&m);
     del_routes(&root, &m, fp);
-    //test_random_ips(&trie);
     bitmap_destroy_trie(&root, &m, NULL);
     //mc_profile(&trie.mm);
     

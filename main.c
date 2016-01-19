@@ -372,8 +372,6 @@ void test_lookup_valid_v6(struct lookup_trie_v6 *trie, FILE *fp)
     }
 
     printf("test %d, match %d\n", i -1 , match);
-
-
 }
 
 void rm_test_v6(FILE *fp, struct lookup_trie_v6 * trie)
@@ -418,7 +416,7 @@ void rm_test_v6(FILE *fp, struct lookup_trie_v6 * trie)
     struct timespec tp_a;
     i--;
 
-    clock_gettime(CLOCK_MONOTONIC, &tp_b);
+    //clock_gettime(CLOCK_MONOTONIC, &tp_b);
 
     while (i>=0){
         nhi = search_v6(trie, set + i);
@@ -428,7 +426,7 @@ void rm_test_v6(FILE *fp, struct lookup_trie_v6 * trie)
         //}
         i--;
     }
-    clock_gettime(CLOCK_MONOTONIC, &tp_a);    
+    //clock_gettime(CLOCK_MONOTONIC, &tp_a);    
 
     printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
     printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
@@ -533,8 +531,8 @@ void ipv6_test()
 
 
 
-    //rewind(fp);
-    //del_routes_v6(&trie,fp);
+    rewind(fp);
+    del_routes_v6(&trie,fp);
 
     mem_trie = mem_trie_v6(&trie);
     printf("ms.mem %d\n", mem_trie.mem);
@@ -608,7 +606,7 @@ void test_random_ips(struct lookup_trie *trie)
     //int j;
     //for (j=0;j<10;j++){
 
-    clock_gettime(CLOCK_MONOTONIC, &tp_b);
+    //clock_gettime(CLOCK_MONOTONIC, &tp_b);
 
     for (i=0;i<RAND_SIZE;i++){
         search(trie, random_ips[i]);
@@ -616,7 +614,7 @@ void test_random_ips(struct lookup_trie *trie)
         //compact_search(random_ips[i]);
     }
  
-    clock_gettime(CLOCK_MONOTONIC, &tp_a);
+    //clock_gettime(CLOCK_MONOTONIC, &tp_a);
     long nano = (tp_a.tv_nsec > tp_b.tv_nsec) ? (tp_a.tv_nsec -tp_b.tv_nsec) : (tp_a.tv_nsec - tp_b.tv_nsec + 1000000000ULL);
     printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
     printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
@@ -692,7 +690,7 @@ void test_one_prefix()
     struct timespec tp_b;
     struct timespec tp_a;
 
-    clock_gettime(CLOCK_MONOTONIC, &tp_b);
+    //clock_gettime(CLOCK_MONOTONIC, &tp_b);
     int i;
 
     for (i=0;i<RAND_SIZE;i++){
@@ -701,7 +699,7 @@ void test_one_prefix()
         //compact_search(random_ips[i]);
     }
  
-    clock_gettime(CLOCK_MONOTONIC, &tp_a);
+    //clock_gettime(CLOCK_MONOTONIC, &tp_a);
 
     long nano = (tp_a.tv_nsec > tp_b.tv_nsec) ? (tp_a.tv_nsec -tp_b.tv_nsec) : (tp_a.tv_nsec - tp_b.tv_nsec + 1000000000ULL);
     printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
@@ -715,7 +713,7 @@ void test_one_prefix()
 int main()
 {
     //fast_table_init();
-    ipv4_test();
+    //ipv4_test();
     ipv6_test();
     //test_one_prefix();
 

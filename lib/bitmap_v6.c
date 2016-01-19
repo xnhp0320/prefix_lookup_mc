@@ -9,7 +9,7 @@
 
 
 //1~127
-static INLINE void lshift_ipv6(struct ip_v6 *ip, uint8_t bits)
+static void lshift_ipv6(struct ip_v6 *ip, uint8_t bits)
 {
     uint64_t head;
     if (likely(bits < 64)) {
@@ -31,7 +31,7 @@ static INLINE void lshift_ipv6(struct ip_v6 *ip, uint8_t bits)
 
 }
 
-static INLINE void rshift_ipv6(struct ip_v6 *ip, uint8_t bits)
+static void rshift_ipv6(struct ip_v6 *ip, uint8_t bits)
 {
     uint64_t tail;
     if (bits < 64) {
@@ -328,7 +328,7 @@ uint8_t bitmapv6_detect_overlap_generic(struct mb_node *n,
 
 static __thread struct lazy_travel lazy_mark[LEVEL_v6]; 
 
-INLINE void * bitmapv6_do_search_lazy(struct mb_node *n, struct ip_v6 ip)
+void * bitmapv6_do_search_lazy(struct mb_node *n, struct ip_v6 ip)
 {
     uint8_t stride;
     int pos;

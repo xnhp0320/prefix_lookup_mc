@@ -54,7 +54,8 @@ void test_random_ips(struct tbm_trie *trie)
 
 
     for (i=0;i<RAND_SIZE;i++){
-        random_ips[i] = random();
+        random_ips[i] = ips[random()%cnt];
+        //random_ips[i] = random();
     }
     free(ips);
 
@@ -77,12 +78,86 @@ void test_random_ips(struct tbm_trie *trie)
     printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
     printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
     printf("nano %ld\n", nano);
+    printf("per lookup %.2f, speed %.2f\n", (double)nano/RAND_SIZE, 1e9/((double)nano/RAND_SIZE));
     //}
     free(random_ips);
     fclose(fp);
 
 }
 
+void test_random_ips_batch(struct tbm_trie *trie)
+{
+    FILE *fp = fopen("ret_5","r");
+    if (fp == NULL)
+        exit(-1);
+
+    char *line = NULL;
+    ssize_t read = 0;
+    size_t len = 0;
+    int cnt = 0;
+    int i = 0;
+    uint32_t ip;
+
+    uint32_t *random_ips = (uint32_t *)malloc(RAND_SIZE * sizeof(uint32_t));
+    uint32_t *ips = (uint32_t *)malloc(RAND_SIZE * sizeof(uint32_t));
+
+    while((read = getline(&line, &len, fp)) != -1){
+        if (i & 0x01) {
+            //if (i == 201863){
+            //    printf("here\n");
+            //}
+            
+            //printf("cidr %d, key %d\n",array[i/2].cidr, array[i/2].key);
+        }
+        else {
+            ip = inet_network(line);
+            ips[i/2] = ip;
+        }
+        //printf("line %s", line);
+        
+        i++;
+        //if (i == 8179) {
+        //    printf("here\n");
+        //}
+    }
+    cnt = i/2;
+
+
+    for (i=0;i<RAND_SIZE;i++){
+        random_ips[i] = ips[random()%cnt];
+        //random_ips[i] = random();
+    }
+    free(ips);
+
+    struct timespec tp_b;
+    struct timespec tp_a;
+    void *ret[BATCH];
+
+    //int j;
+    //for (j=0;j<10;j++){
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_b);
+
+    for (i=0;i + BATCH < RAND_SIZE;i+=BATCH){
+        tbm_search_batch(trie, random_ips + i, ret, BATCH);
+        //hash_trie_search(random_ips[i]);
+        //compact_search(random_ips[i]);
+    }
+
+    tbm_search_batch(trie, random_ips + i, ret, RAND_SIZE - i);
+ 
+    clock_gettime(CLOCK_MONOTONIC, &tp_a);
+    long nano = (tp_a.tv_nsec > tp_b.tv_nsec) ? (tp_a.tv_nsec -tp_b.tv_nsec) : (tp_a.tv_nsec - tp_b.tv_nsec + 1000000000ULL);
+    printf("batch lookup results\n");
+    printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
+    printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
+    printf("nano %ld\n", nano);
+    printf("per lookup %.2f, speed %.2f\n", (double)nano/RAND_SIZE, 1e9/((double)nano/RAND_SIZE));
+    //}
+    free(random_ips);
+    fclose(fp);
+
+}
 
 int del_routes(struct tbm_trie *trie, FILE *fp)
 {
@@ -244,6 +319,72 @@ int load_routes(struct tbm_trie *root, FILE *fp)
     return i/2 ;
 }
 
+void test_lookup_valid_batch(struct tbm_trie *trie) 
+{
+    FILE *fp = fopen("ret_5","r");
+    if (fp == NULL)
+        exit(-1);
+
+    int i = 0;
+
+    char *line = NULL;
+    ssize_t read = 0;
+    size_t len = 0;
+
+    uint32_t *ips = (uint32_t *)malloc(1000000 * sizeof(uint32_t));
+    uint32_t ip;
+    uint32_t key = 1;
+
+    while((read = getline(&line, &len, fp)) != -1){
+        if (i & 0x01) {
+        }
+        else {
+            //printf("line %s", line);
+            ip = inet_network(line);
+            ips[i/2] = ip;
+        }
+        i++;
+    }
+    int ip_cnt = i/2;
+
+
+    int cnt=0;
+    int j;
+    void *ret[BATCH];
+    for (i = 0; i + BATCH < ip_cnt ;i+= BATCH){
+
+        //if (ips[i] == 0x7a99ff00) {
+        //    printf("here\n");
+        //}
+        //struct next_hop_info *a = hash_trie_search(ips[i]);
+        tbm_search_batch(trie, ips + i, ret, BATCH);
+
+        for(j = 0; j < BATCH; j++ ) {
+            uint32_t b = (uint32_t)(uint64_t)ret[j];
+            if ( b == key ) {
+                cnt ++;
+            }
+            else {
+                //struct in_addr addr;
+                //addr.s_addr = htonl(array[i].test_ip);
+
+
+                printf("search(0x%x); result %d; i %d\n", ips[i+j], b ,i+j);
+                //printf("the truth is ip_test %s  key %d ip %x\n", inet_ntoa(addr),array[i].key*2, array[i].ip);
+            }
+            //printf("search(0x%x);\n", array[i].ip);
+
+            //printf("search(0x%x); reulst %x\n", array[i].ip, b);
+            key ++;
+        }
+    }
+
+    printf("match %d\n", cnt);
+    fclose(fp);
+    free(ips);
+    //mem_usage(&trie->mm);
+}
+
 void test_lookup_valid(struct tbm_trie *trie) 
 {
     FILE *fp = fopen("ret_5","r");
@@ -321,8 +462,10 @@ void ipv4_test()
     load_routes(&trie, fp);
     //load_fib(&trie, fp);
 
-    test_lookup_valid(&trie);
+    //test_lookup_valid(&trie);
+    test_lookup_valid_batch(&trie);
     test_random_ips(&trie);
+    test_random_ips_batch(&trie);
     //mem_alloc_stat_v6();
 
     //rewind(fp);

@@ -11,7 +11,7 @@
 #define UPDATE_LEVEL ((LENGTH/STRIDE) + 1) 
 
 
-#define BATCH 8
+#define BATCH 16 
 
 
 int bitmap_traverse_trie(struct mb_node *node, 
@@ -49,5 +49,5 @@ void bitmap_destroy_trie(struct mb_node *n,
         struct mm *m, void (*destroy_nhi)(void *nhi));
 
 void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH], 
-        uint32_t ip[BATCH], void *ret[BATCH]);
+        uint32_t ip[BATCH], void *ret[BATCH], int cnt);
 #endif

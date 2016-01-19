@@ -5,7 +5,7 @@ SOURCE=$(wildcard *.c)
 SOURCE_DEP=$(subst .c,.o,$(SOURCE))
 SOURCE_DEP_D=$(subst .c,.d,$(SOURCE))
 
-LDFLAGS= -lrt  
+LDFLAGS= 
 OBJ=prefix_lookup
 
 %.d: %.c

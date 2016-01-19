@@ -62,7 +62,7 @@ static int addr_pfn(struct mc_priv *m, int n)
             m->pfnbuf[i] = 0;
         }
 
-        printf("vaddr %p paddr 0x%llx\n", m->addr + i*HPAGE_SIZE, m->pfnbuf[i] << PAGE_SHIFT);
+        printf("vaddr %p paddr 0x%lx\n", m->addr + i*HPAGE_SIZE, m->pfnbuf[i] << PAGE_SHIFT);
     }
 
     close(fid);

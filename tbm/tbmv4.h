@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "lib/mb_node.h"
+#include "lib/bitmap_v4.h"
 #include "lib/mm.h"
 
 //use the bitmap configruation comes from the Will Eatherton paper: Tree bitmap
@@ -11,7 +12,7 @@
 //you can not adjust the STRIDE value
 //if you ajust the other value, the macro LEVEL should be changed.
 
-#define INITIAL_BITS 16 
+#define INITIAL_BITS 13 
 
 #define INIT_HAS_A_CHILD 0x00000001
 #define PREFIX_HI 16
@@ -44,5 +45,6 @@ int tbm_delete_prefix(struct tbm_trie *trie, uint32_t ip, int cidr,
 void tbm_destroy_trie(struct tbm_trie *trie, void (*destroy_nhi)(void* nhi));
 void tbm_print_all_prefix(struct tbm_trie *trie, void (*print_next_hop)(void *nhi));
 int tbm_prefix_exist(struct tbm_trie *trie, uint32_t ip, int cidr);
+void tbm_search_batch(struct tbm_trie *trie, uint32_t ip[BATCH], void *ret[BATCH], int cnt);
 
 #endif
