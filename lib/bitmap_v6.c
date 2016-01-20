@@ -9,7 +9,7 @@
 
 
 //1~127
-static void lshift_ipv6(struct ip_v6 *ip, uint8_t bits)
+void lshift_ipv6(struct ip_v6 *ip, uint8_t bits)
 {
     uint64_t head;
     if (likely(bits < 64)) {
@@ -31,7 +31,7 @@ static void lshift_ipv6(struct ip_v6 *ip, uint8_t bits)
 
 }
 
-static void rshift_ipv6(struct ip_v6 *ip, uint8_t bits)
+void rshift_ipv6(struct ip_v6 *ip, uint8_t bits)
 {
     uint64_t tail;
     if (bits < 64) {
@@ -398,7 +398,7 @@ static inline void swap(unsigned char *ip, int i, int j)
 
 void hton_ipv6(struct in6_addr *ip)
 {
-#if __LITTLE_ENDIAN__
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     int i = 0;
     for(;i<LENGTH_v6/16;i++) 
         swap((unsigned char *)ip,i,LENGTH_v6/8 - i - 1);

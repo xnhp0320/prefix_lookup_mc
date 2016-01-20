@@ -212,29 +212,6 @@ void reduce_rule(struct mm *m, struct mb_node *node, uint32_t pos, int level)
     node->child_ptr = n; 
 }
 
-/*
-void mem_subtrie(struct mb_node *n, struct mem_stats *ms)
-{
-    int stride;
-    int pos;
-    struct mb_node *next;
-    int child_num = count_children(n->external);
-    int rule_num = count_children(n->internal);
-    
-
-    ms->mem += (UP_RULE(rule_num) + UP_CHILD(child_num)) * NODE_SIZE;
-    ms->node += (UP_RULE(rule_num) + UP_CHILD(child_num));
-
-    
-    for (stride = 0; stride < (1<<STRIDE); stride ++ ){
-        pos = count_enl_bitmap(stride);
-        if (test_bitmap(n->external, pos)) {
-            next = (struct mb_node *)n->child_ptr + count_ones(n->external, pos);
-            mem_subtrie(next, ms);
-        }
-    }
-}
-*/
 
 #ifdef FAST_TREE_FUNCTION
 static BITMAP_TYPE fct[1<<(STRIDE - 1)];
@@ -351,15 +328,6 @@ void destroy_subtrie(struct mb_node *node, struct mm *m, void (*destroy_nhi)(voi
     cnt_rules = count_children(node->internal);
     first = POINT(node->child_ptr) - UP_RULE(cnt_rules);
 
-
-#ifdef DEBUG_MEMORY_FREE
-    int cnt = count_children(node->internal);
-    mem_destroy += UP_RULE(cnt) * NODE_SIZE;
-    cnt = count_children(node->external);
-    mem_destroy += UP_CHILD(cnt) * NODE_SIZE;
-#endif
-
-
     node->internal = 0;
     node->external = 0;
     node->child_ptr = NULL;
@@ -367,5 +335,4 @@ void destroy_subtrie(struct mb_node *node, struct mm *m, void (*destroy_nhi)(voi
     int cnt_children = count_children(node->external);
     free_node(m, first, UP_RULE(cnt_rules) + UP_CHILD(cnt_children), depth);
 }
-
 

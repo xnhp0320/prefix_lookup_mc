@@ -1,10 +1,11 @@
-#ifndef __TBM_H__
-#define __TBM_H__
+#ifndef __TBM_v4_H__
+#define __TBM_v4_H__
 
 #include <stdint.h>
 #include "lib/mb_node.h"
 #include "lib/bitmap_v4.h"
 #include "lib/mm.h"
+#include "tbm.h"
 
 //use the bitmap configruation comes from the Will Eatherton paper: Tree bitmap
 //use the 16,6,6,4
@@ -13,19 +14,6 @@
 //if you ajust the other value, the macro LEVEL should be changed.
 
 #define INITIAL_BITS 13 
-
-#define INIT_HAS_A_CHILD 0x00000001
-#define PREFIX_HI 16
-
-union init_entry{
-    struct mb_node node;
-    void *ptr;
-};
-
-struct init_node {
-    uint32_t flags;
-    union init_entry e;
-};
 
 struct tbm_trie{
     struct init_node *init;

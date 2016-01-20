@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "bitmap.h"
 #include "mb_node.h"
 #include "mm.h"
 #include <arpa/inet.h>
@@ -12,15 +13,12 @@
 //Tree bitmap
 //use the 64-bit bitmap for ipv6 lookup
 
-
 #define LENGTH_v6 128 
 #define LEVEL_v6  ((LENGTH_v6/STRIDE)+1) 
 #define UPDATE_LEVEL_v6 ((LENGTH_v6/STRIDE)+1) 
 
-#define INLINE __attribute__((always_inline))
-
 struct ip_v6 {
-#if __LITTLE_ENDIAN__
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     uint64_t iplo;
     uint64_t iphi;
 #else
@@ -38,6 +36,13 @@ int bitmapv6_delete_prefix(struct mb_node *n, struct mm *m,
         struct ip_v6 ip, int cidr, 
         void (*destroy_nhi)(void *));
 
+uint8_t bitmapv6_detect_overlap(struct mb_node *n, 
+        struct ip_v6 ip, 
+        uint8_t cidr, void **nhi_over);
+
+uint8_t bitmapv6_detect_overlap_generic(struct mb_node *n, 
+        struct ip_v6 ip, uint8_t cidr, 
+        uint32_t bits_limit, void **nhi_over);
 
 
 //return 1 means the prefix exists.
@@ -47,7 +52,12 @@ void bitmapv6_print_all_prefix(struct mb_node *node,
 void bitmapv6_destroy_trie(struct mb_node *node, struct mm *m, 
         void (*destroy_nhi)(void* nhi));
 
+int bitmapv6_traverse_trie(struct mb_node *node, struct ip_v6 ip, int cidr,
+        traverse_func func, void *user_data);
+
 void hton_ipv6(struct in6_addr *ip);
 
+void lshift_ipv6(struct ip_v6 *ip, uint8_t bits);
+void rshift_ipv6(struct ip_v6 *ip, uint8_t bits);
 
 #endif

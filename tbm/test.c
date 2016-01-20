@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include "tbmv4.h"
+#include "tbmv6.h"
 #include <time.h>
-//#include "tbmv6.h"
 
 
 #define RAND_SIZE 1000000
@@ -479,7 +479,7 @@ void ipv4_test()
     printf("\n");
 
 }
-#if 0
+
 void test_lookup_valid_v6(struct mb_node *root, FILE *fp)
 {
     struct ip_v6 ip;
@@ -519,7 +519,7 @@ void test_lookup_valid_v6(struct mb_node *root, FILE *fp)
     printf("test %d, match %d\n", i -1 , match);
 }
 
-int del_routes_v6(struct mb_node *root, struct mm *m, FILE *fp)
+int del_routes_v6(struct tbmv6_trie *trie, FILE *fp)
 {
     struct ip_v6 ip;
     uint32_t cidr;
@@ -559,20 +559,20 @@ int del_routes_v6(struct mb_node *root, struct mm *m, FILE *fp)
         prelen[strlen(line) - (slash - line) - 1] ='\0';
         cidr = atoi(prelen);
 
-        void *ret = bitmapv6_do_search(root, ip);
+        void *ret = tbmv6_search(trie, ip);
         uint64_t key = (uint64_t)ret;
         if ( key != i) {
             //printf("overlapped or error %s key %d ret %d\n", line, i, key);
         }
 
-        r = bitmapv6_prefix_exist(root, ip, cidr);
+        r = tbmv6_prefix_exist(trie, ip, cidr);
         if( r != 1) {
             printf("prefix_exist error\n");
             printf("IP v6 addr: %d %s\n", i, line);
         }
         
-        bitmapv6_delete_prefix(root, m, ip, cidr, NULL); 
-        r = bitmapv6_prefix_exist(root, ip, cidr);
+        tbmv6_delete_prefix(trie, ip, cidr, NULL); 
+        r = tbmv6_prefix_exist(trie, ip, cidr);
         if ( r == 1) {
             printf("prefix_exist error\n");
         }
@@ -585,7 +585,7 @@ int del_routes_v6(struct mb_node *root, struct mm *m, FILE *fp)
 
 
 
-int load_routes_v6(struct mb_node *node, struct mm *m, FILE *fp)
+int load_routes_v6(struct tbmv6_trie *trie, FILE *fp)
 {
     int i = 0;
     char *line = NULL;
@@ -626,7 +626,7 @@ int load_routes_v6(struct mb_node *node, struct mm *m, FILE *fp)
         prelen[strlen(line) - (slash - line) - 1] ='\0';
         cidr = atoi(prelen);
         
-        bitmapv6_insert_prefix(node, m, ip, cidr, (void *)key);
+        tbmv6_insert_prefix(trie, ip, cidr, (void *)key);
         key ++;
         i++;
     }
@@ -640,26 +640,24 @@ void ipv6_test()
     if (fp == NULL)
         exit(-1);
     
-    struct mb_node root = {0,0,NULL};
-    struct mm m;
-    memset(&m, 0, sizeof(m));
-    mm_init(&m, MEM_ALLOC_SIMPLE);
     printf("ipv6 test\n");
+    struct tbmv6_trie trie;
 
-    load_routes_v6(&root, &m, fp);
-    bitmapv6_print_all_prefix(&root, print_nhi);
-    mm_profile(&m);
+    tbmv6_init_trie(&trie);
+
+    load_routes_v6(&trie, fp);
+    tbmv6_print_all_prefix(&trie, print_nhi);
+    mm_profile(&trie.m);
 
     rewind(fp);
-    del_routes_v6(&root, &m, fp);
+    del_routes_v6(&trie, fp);
 
-    bitmapv6_destroy_trie(&root, &m, NULL);
-    mm_profile(&m);
+    tbmv6_destroy_trie(&trie, NULL);
+    mm_profile(&trie.m);
 
     printf("\n");
 
 }
-#endif
 
 int main()
 {

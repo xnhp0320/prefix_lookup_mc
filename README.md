@@ -1,7 +1,7 @@
 prefix_lookup_mc
 ================
 
-Any problem, drop the email at: xnhp0320@gmail.com
+Any problem, drop the email at: hepeng@ict.ac.cn
 
 *A high performance IP lookup engine based on the Tree Bitmap Algorithm.
 
@@ -10,7 +10,7 @@ Any problem, drop the email at: xnhp0320@gmail.com
 
 *It can be used for both IPv4 and IPv6 lookup 
 
-	Performance: 5.3Gbps for low locality IP traces on a single Intel Xeon Core
+	Performance: 24MLPS for low locality IP traces on a single Intel Xeon Core
 
 *It support Incremental Update
 

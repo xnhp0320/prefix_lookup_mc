@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "tbmv4.h"
 #include "lib/bitmap_v4.h"
 #include "lib/mm.h"
+#include "tbmv4.h"
+#include "tbm.h"
 #include <arpa/inet.h>
 
 int tbm_init_trie(struct tbm_trie *trie)
@@ -341,6 +342,9 @@ void tbm_destroy_trie(struct tbm_trie *trie, void (*destroy_nhi)(void* nhi))
     destroy_subtrie(&trie->up_aux, &trie->up_m, destroy_nhi, 0);
 
     for(i=0; i < (1<<INITIAL_BITS); i++) {
+        if(trie->init[i].flags == 0) {
+            continue;
+        }
         destroy_subtrie(&trie->init[i].e.node, &trie->m, NULL, 0);
     }
 

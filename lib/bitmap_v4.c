@@ -198,43 +198,6 @@ void * bitmap_do_search(struct mb_node *n, uint32_t ip)
 
 
 static __thread struct lazy_travel lazy_mark[LEVEL]; 
-#if 0
-void *bitmap_do_search_lazy(struct mb_node *n, uint32_t ip)
-{
-    uint8_t stride;
-    int pos;
-    void **longest = NULL;
-    int travel_depth = -1;
-
-    stride = ip >> (LENGTH - STRIDE);
-    while(likely(test_bitmap(n->external, count_enl_bitmap(stride)))) {
-        travel_depth++;
-        lazy_mark[travel_depth].lazy_p = n;
-        lazy_mark[travel_depth].stride = stride;
-        n = (struct mb_node*)n->child_ptr 
-            + count_ones(n->external, count_enl_bitmap(stride));
-        ip = (uint32_t)(ip << STRIDE);
-        stride = ip >> (LENGTH - STRIDE);
-    }
-
-    pos = tree_function(n->internal, stride);
-    if (pos != -1) {
-        longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
-        return (longest == NULL)?NULL:*longest;
-    }
-
-    for(;travel_depth>=0;travel_depth --) {
-        n = lazy_mark[travel_depth].lazy_p;
-        stride = lazy_mark[travel_depth].stride;
-        pos = tree_function(n->internal, stride);
-        if (pos != -1) {
-            longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
-            return (longest == NULL)?NULL:*longest;
-        }
-    }
-    return NULL;
-}
-#endif
 
 void *bitmap_do_search_lazy(struct mb_node *n, uint32_t ip)
 {
@@ -278,7 +241,6 @@ out:
     return (longest == NULL)?NULL:*longest;
 }
 
-//code has bug
 static __thread struct lazy_travel lazy_mark_batch[BATCH][LEVEL];
 
 void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH], 
@@ -344,9 +306,6 @@ out:
         ret[i] = (longest[i] == NULL)? NULL: *longest[i];
     }
 }
-
-
-
 
 
 /*
@@ -487,24 +446,3 @@ void bitmap_print_all_prefix(struct mb_node *root,
     print_mb_node_iter(root, 0, LENGTH, 0, print_next_hop); 
 }
 
-/*
-static void level_sub_trie(struct mb_node * n, uint32_t *level_mem, uint32_t l)
-{
-    int stride;
-    int pos;
-    struct mb_node *next;
-    int child_num = count_children(n->external);
-    int rule_num = count_children(n->internal);
-    
-
-    level_mem[l] += (UP_RULE(rule_num) + UP_CHILD(child_num)) * NODE_SIZE;
-    
-    for (stride = 0; stride < (1<<STRIDE); stride ++ ){
-        pos = count_enl_bitmap(stride);
-        if (test_bitmap(n->external, pos)) {
-            next = (struct mb_node *)n->child_ptr + count_ones(n->external, pos);
-            level_sub_trie(next, level_mem, l+1);
-        }
-    }
-}
-*/

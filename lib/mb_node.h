@@ -1,7 +1,6 @@
 #ifndef _MB_NODE_H_
 #define _MB_NODE_H_
 
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -126,6 +125,19 @@ static inline void set_bitmap(BITMAP_TYPE *bitmap, int pos)
 {
     *bitmap |= (1ULL<<pos);
 }
+
+
+static inline struct mb_node *next_child(struct mb_node *current, uint8_t pos)
+{
+    return (struct mb_node*)current->child_ptr + count_ones(current->external, pos); 
+}
+
+//NHI next hop information
+static inline void **pointer_to_nhi(struct mb_node *current, uint8_t pos)
+{
+    return (void**)current->child_ptr - count_ones(current->internal, pos) - 1;
+}
+
 void destroy_subtrie(struct mb_node *node, struct mm *m, void (*destroy_nhi)(void *nhi), int depth);
 
 //GCC optimize
