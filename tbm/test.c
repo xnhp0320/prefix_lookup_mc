@@ -174,6 +174,15 @@ int del_routes(struct tbm_trie *trie, FILE *fp)
     uint32_t key = 1;
     rewind(fp);
 
+    struct timespec tp_b;
+    struct timespec tp_a;
+
+    //int j;
+    //for (j=0;j<10;j++){
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_b);
+
+
     while((read = getline(&line, &len, fp)) != -1){
         if (i & 0x01) {
 
@@ -222,9 +231,17 @@ int del_routes(struct tbm_trie *trie, FILE *fp)
         //}
 
     }
-    printf("del routes %d\n", i/2 );
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_a);
+    long nano = (tp_a.tv_nsec > tp_b.tv_nsec) ? (tp_a.tv_nsec -tp_b.tv_nsec) : (tp_a.tv_nsec - tp_b.tv_nsec + 1000000000ULL);
+    printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
+    printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
+    printf("nano %ld\n", nano);
+    printf("per delete %.2f, speed %.2f\n", (double)nano/(i/2), 1e9/((double)nano/(i/2)));
+
+    printf("del routes %d\n", i/2);
     rewind(fp);
-    
+#if 0 
     while((read = getline(&line, &len, fp)) != -1){
         if (i & 0x01) {
 
@@ -268,6 +285,7 @@ int del_routes(struct tbm_trie *trie, FILE *fp)
         //}
 
     }
+#endif
 
     return i/2 ;
 
@@ -283,6 +301,11 @@ int load_routes(struct tbm_trie *root, FILE *fp)
     uint32_t ip = 0;
     uint32_t cidr;
     uint64_t key = 1;
+
+    struct timespec tp_b;
+    struct timespec tp_a;
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_b);
 
     while((read = getline(&line, &len, fp)) != -1){
         if (i & 0x01) {
@@ -315,6 +338,14 @@ int load_routes(struct tbm_trie *root, FILE *fp)
         //}
 
     }
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_a);
+    long nano = (tp_a.tv_nsec > tp_b.tv_nsec) ? (tp_a.tv_nsec -tp_b.tv_nsec) : (tp_a.tv_nsec - tp_b.tv_nsec + 1000000000ULL);
+    printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
+    printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
+    printf("nano %ld\n", nano);
+    printf("per insert %.2f, speed %.2f\n", (double)nano/(i/2), 1e9/((double)nano/(i/2)));
+
     printf("load routes %d\n", i/2 );
     return i/2 ;
 }

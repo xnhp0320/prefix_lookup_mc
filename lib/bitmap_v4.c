@@ -324,7 +324,7 @@ uint8_t bitmap_detect_overlap_generic(struct mb_node *n,
 
     uint8_t step = 0;
     int pos;
-    struct next_hop_info **longest = NULL;
+    void **longest = NULL;
 
 
     //limit the bits to detect
@@ -344,7 +344,7 @@ uint8_t bitmap_detect_overlap_generic(struct mb_node *n,
             curr_mask = step * STRIDE + mask;
             if (curr_mask < org_limit) {  
                 final_mask = curr_mask;
-                longest = (struct next_hop_info**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
             }
         }
 
