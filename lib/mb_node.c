@@ -27,16 +27,47 @@ void free_node(struct mm *m, void *ptr, uint32_t cnt, int level)
 }
 
 
+#ifdef COMPRESS_NHI
+int is_redund(struct mb_node *node, int pos, void *nhi) 
+{
+    BITMAP_TYPE tmp = node->inl_mask;
+    tmp = (tmp >> pos ) << pos;
+    if(tmp == 0)
+        return 0;
+
+    int idx = rightmost_1bit_idx(tmp);
+    void **iter = pointer_to_nhi(node, idx);
+
+    return *iter == nhi;
+}
+
+#endif
+
+
 //pos start from 1
 //
 void extend_rule(struct mm *m, struct mb_node *node, uint32_t pos, int level, void *nhi)
 {
     int child_num = count_children(node->external);
+#ifndef COMPRESS_NHI
     int rule_num = count_children(node->internal) - 1;
+#else
+    int rule_num = count_children(node->inl_mask);
+#endif
 
     void **i;
     void **j;
-    
+
+#ifdef COMPRESS_NHI
+    if(is_redund(node, pos, nhi)) {
+        return;
+    }
+    set_bitmap(&node->inl_mask, pos);
+    pos = count_ones(node->inl_mask, pos) + 1;
+#else
+    pos = count_ones(node->internal, pos) + 1; 
+#endif
+
     void *n = new_node(m, child_num, rule_num + 1, level);
 
     if (child_num != 0){
@@ -84,7 +115,12 @@ struct mb_node * extend_child(struct mm *m, struct mb_node *node, int level,
         uint32_t pos)
 {
     int child_num = count_children(node->external) - 1;
+#ifndef COMPRESS_NHI
     int rule_num = count_children(node->internal);
+#else
+    int rule_num = count_children(node->inl_mask);
+#endif
+    pos = count_ones(node->external, pos);
 
     void *n = new_node(m, child_num +1 ,rule_num, level);
 
@@ -124,10 +160,15 @@ struct mb_node * extend_child(struct mm *m, struct mb_node *node, int level,
 void reduce_child(struct mm *m, struct mb_node *node, int pos, int level)
 {
     int child_num = count_children(node->external);
+#ifndef COMPRESS_NHI
     int rule_num = count_children(node->internal);
+#else
+    int rule_num = count_children(node->inl_mask);
+#endif
+    pos = count_ones(node->external, pos);
 
     if (child_num < 1){
-        printf("reduce_rule: error!\n");
+        printf("reduce_child: error!\n");
     }
 
     void *n = new_node(m, child_num -1 ,rule_num, level);
@@ -165,10 +206,24 @@ void reduce_child(struct mm *m, struct mb_node *node, int pos, int level)
 void reduce_rule(struct mm *m, struct mb_node *node, uint32_t pos, int level)
 {
     int child_num = count_children(node->external);
+#ifndef COMPRESS_NHI
     int rule_num = count_children(node->internal);
+#else
+    int rule_num = count_children(node->inl_mask);
+#endif
 
     void **i;
     void **j;
+
+#ifdef COMPRESS_NHI
+    if(!test_bitmap(node->inl_mask, pos)) {
+        return;
+    }
+    pos = count_ones(node->inl_mask, pos) + 1;
+    clear_bitmap(&node->inl_mask, pos);
+#else
+    pos = count_ones(node->internal, pos) + 1;
+#endif
     
     if (rule_num < 1){
         printf("reduce_rule: error!\n");
@@ -294,7 +349,7 @@ void destroy_subtrie(struct mb_node *node, struct mm *m, void (*destroy_nhi)(voi
     int bit;
     int cidr;
     int pos;
-    struct next_hop_info ** nhi = NULL;
+    void ** nhi = NULL;
     int stride;
     struct mb_node *next = NULL;
 
@@ -306,7 +361,8 @@ void destroy_subtrie(struct mb_node *node, struct mm *m, void (*destroy_nhi)(voi
         for (bit=0;bit< (1<<cidr);bit++) {
             pos = count_inl_bitmap(bit,cidr);
             if (test_bitmap(node->internal, pos)) {
-                nhi = (struct next_hop_info**)node->child_ptr - count_ones(node->internal, pos) - 1;
+                //nhi = (struct next_hop_info**)node->child_ptr - count_ones(node->internal, pos) - 1;
+                nhi = pointer_to_nhi(node, pos);
                 if (destroy_nhi && *nhi != NULL) {
                     destroy_nhi(*nhi);
                 }
@@ -320,16 +376,24 @@ void destroy_subtrie(struct mb_node *node, struct mm *m, void (*destroy_nhi)(voi
     for (stride = 0; stride < (1<<STRIDE); stride ++ ){
         pos = count_enl_bitmap(stride);
         if (test_bitmap(node->external, pos)) {
-            next = (struct mb_node *)node->child_ptr + count_ones(node->external, pos);
+            //next = (struct mb_node *)node->child_ptr + count_ones(node->external, pos);
+            next = next_child(node, pos);
             destroy_subtrie(next, m, destroy_nhi, depth + 1);
         }
     }
 
+#ifndef COMPRESS_NHI
     cnt_rules = count_children(node->internal);
+#else
+    cnt_rules = count_children(node->inl_mask);
+#endif
     first = POINT(node->child_ptr) - UP_RULE(cnt_rules);
 
     node->internal = 0;
     node->external = 0;
+#ifdef COMPRESS_NHI
+    node->inl_mask = 0;
+#endif
     node->child_ptr = NULL;
 
     int cnt_children = count_children(node->external);

@@ -34,5 +34,7 @@ void tbm_destroy_trie(struct tbm_trie *trie, void (*destroy_nhi)(void* nhi));
 void tbm_print_all_prefix(struct tbm_trie *trie, void (*print_next_hop)(void *nhi));
 int tbm_prefix_exist(struct tbm_trie *trie, uint32_t ip, int cidr);
 void tbm_search_batch(struct tbm_trie *trie, uint32_t ip[BATCH], void *ret[BATCH], int cnt);
-
+#ifndef COMPRESS_NHI
+void tbm_redund_rule_count(struct tbm_trie *trie);
+#endif
 #endif

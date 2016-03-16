@@ -15,7 +15,7 @@ void bitmap_destroy_trie(struct mb_node *root,
 }
 
 
-int bitmap_traverse_trie(struct mb_node *node, 
+int bitmap_traverse_branch(struct mb_node *node, 
         uint32_t ip, int cidr, 
         traverse_func func, 
         void *user_data)
@@ -41,8 +41,7 @@ int bitmap_traverse_trie(struct mb_node *node,
             if(ret != TRAVERSE_CONT)
                 break;
 
-            node = (struct mb_node*) node->child_ptr 
-                + count_ones(node->external, pos); 
+            node = next_child(node, pos);
 
             cidr -= STRIDE;
             ip <<= STRIDE;
@@ -79,15 +78,13 @@ int bitmap_insert_prefix(
             pos = count_inl_bitmap(stride, cidr);
             if (test_bitmap(node->internal, pos)) {
                 //already has the rule, need to update the rule
-                i = (void**)node->child_ptr - 
-                    count_ones(node->internal, pos) -1;
+                i = pointer_to_nhi(node, pos);
                 *i = nhi;
                 return 1;
             }
             else {
                 update_inl_bitmap(node, pos);
                 //rules pos starting at 1, so add 1 to offset
-                pos = count_ones(node->internal, pos) + 1;
                 extend_rule(m, node, pos, level, nhi);
                 break;
             }
@@ -98,12 +95,10 @@ int bitmap_insert_prefix(
             pos = count_enl_bitmap(stride);
 
             if (test_bitmap(node->external, pos)) {
-                node = (struct mb_node*)node->child_ptr
-                    + count_ones(node->external, pos); 
+                node = next_child(node, pos);
             } 
             else {
                 update_enl_bitmap(node, pos);
-                pos = count_ones(node->external, pos);
                 node = extend_child(m, node, level, pos);
             }
             cidr -= STRIDE;
@@ -132,8 +127,7 @@ int bitmap_delete_prefix(struct mb_node *node, struct mm *m,
             pos = count_inl_bitmap(stride, cidr);
             if (destroy_nhi) {
                 void ** nhi;
-                nhi = (void **)node->child_ptr - 
-                    count_ones(node->internal, pos) - 1; 
+                nhi = pointer_to_nhi(node, pos);
                 destroy_nhi(*nhi);
             }
 
@@ -150,8 +144,7 @@ int bitmap_delete_prefix(struct mb_node *node, struct mm *m,
             trace_node[i].node = node;
             trace_node[i].pos  = pos; 
 
-            node = (struct mb_node*) node->child_ptr
-                + count_ones(node->external, pos); 
+            node = next_child(node, pos);
 
             cidr -= STRIDE;
             ip <<= STRIDE;
@@ -164,7 +157,7 @@ int bitmap_delete_prefix(struct mb_node *node, struct mm *m,
 int bitmap_prefix_exist(struct mb_node *n,  uint32_t ip, uint8_t cidr)
 {
     int ret;
-    ret = bitmap_traverse_trie(n, ip, cidr, prefix_exist_func, NULL); 
+    ret = bitmap_traverse_branch(n, ip, cidr, prefix_exist_func, NULL); 
     return ret;
 }
 
@@ -175,16 +168,15 @@ void * bitmap_do_search(struct mb_node *n, uint32_t ip)
     int pos;
     void **longest = NULL;
 
-    for (;;){
+    for (;;) {
         stride = ip >> (LENGTH - STRIDE);
         pos = tree_function(n->internal, stride);
 
         if (pos != -1){
-            longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+            longest = pointer_to_nhi(n, pos);
         }
         if (test_bitmap(n->external, count_enl_bitmap(stride))) {
-            n = (struct mb_node*)n->child_ptr 
-                + count_ones(n->external, count_enl_bitmap(stride));
+            n = next_child(n, count_enl_bitmap(stride));
             ip = (uint32_t)(ip << STRIDE);
         }
         else {
@@ -206,22 +198,21 @@ void *bitmap_do_search_lazy(struct mb_node *n, uint32_t ip)
     void **longest = NULL;
     int travel_depth = -1;
 
-    for (;;){
+    for (;;) {
         stride = ip >> (LENGTH - STRIDE);
 
         if (likely(test_bitmap(n->external, count_enl_bitmap(stride)))) {
             travel_depth++;
             lazy_mark[travel_depth].lazy_p = n;
             lazy_mark[travel_depth].stride = stride;
-            n = (struct mb_node*)n->child_ptr 
-                + count_ones(n->external, count_enl_bitmap(stride));
+            n = next_child(n, count_enl_bitmap(stride));
             ip = (uint32_t)(ip << STRIDE);
         }
         else {
 
             pos = tree_function(n->internal, stride);
             if (pos != -1) {
-                longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                longest = pointer_to_nhi(n, pos);
                 goto out;
             }
 
@@ -230,7 +221,7 @@ void *bitmap_do_search_lazy(struct mb_node *n, uint32_t ip)
                 stride = lazy_mark[travel_depth].stride;
                 pos = tree_function(n->internal, stride);
                 if (pos != -1) {
-                    longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                    longest = pointer_to_nhi(n, pos);
                     goto out;
                 }
             }
@@ -271,8 +262,7 @@ void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH],
                 lazy_mark_batch[i][travel_depth[i]].stride = stride[i];
                 travel_depth[i]++;
 
-                n[i] = (struct mb_node*)n[i]->child_ptr 
-                    + count_ones(n[i]->external, count_enl_bitmap(stride[i]));
+                n[i] = next_child(n[i], count_enl_bitmap(stride[i]));
                 ip[i] = (uint32_t)(ip[i] << STRIDE);
                 stride[i] = ip[i] >> (LENGTH - STRIDE);
                 __builtin_prefetch(n[i]); 
@@ -286,8 +276,7 @@ void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH],
     for(i = 0; i < cnt; i++) {
         pos[i] = tree_function(n[i]->internal, stride[i]);
         if (pos[i] != -1) {
-            longest[i] = (void**)n[i]->child_ptr - 
-                count_ones(n[i]->internal, pos[i]) - 1;
+            longest[i] = pointer_to_nhi(n[i], pos[i]);
             ret[i] = (longest[i] == NULL)? NULL: *longest[i];
             continue;
         }
@@ -297,8 +286,7 @@ void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH],
             stride[i] = lazy_mark_batch[i][travel_depth[i]].stride;
             pos[i] = tree_function(n[i]->internal, stride[i]);
             if (pos[i] != -1) {
-                longest[i] = (void**)n[i]->child_ptr - 
-                    count_ones(n[i]->internal, pos[i]) - 1;
+                longest[i] = pointer_to_nhi(n[i], pos[i]);
                 goto out;
             }
         }
@@ -344,7 +332,7 @@ uint8_t bitmap_detect_overlap_generic(struct mb_node *n,
             curr_mask = step * STRIDE + mask;
             if (curr_mask < org_limit) {  
                 final_mask = curr_mask;
-                longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                longest = pointer_to_nhi(n, pos);
             }
         }
 
@@ -353,7 +341,7 @@ uint8_t bitmap_detect_overlap_generic(struct mb_node *n,
 
         if (test_bitmap(n->external, count_enl_bitmap(stride))) {
             //printf("%d %p\n", depth, n);
-            n = (struct mb_node*)n->child_ptr + count_ones(n->external, count_enl_bitmap(stride));
+            n = next_child(n, count_enl_bitmap(stride));
             ip = (uint32_t)(ip << STRIDE);
         }
         else {
@@ -395,31 +383,28 @@ static void print_ptr(struct print_key *key,
     printf("\n");
 }
 
-static void print_mb_node_iter(struct mb_node *node, uint32_t ip, uint32_t left_bits, 
-        uint32_t cur_cidr, void (*print_next_hop)(void *nhi)
-        )
+void bitmap_mb_node_iter(struct mb_node *node, uint32_t ip, uint32_t left_bits, 
+        uint32_t cur_cidr, void (*trie_traverse_func)(uint32_t ip, uint32_t cidr, void *nhi, void *user),
+        void *userdata)
 {
     int bit=0;
     int cidr=0;
     int stride = 0;
-    uint32_t iptmp;
     int pos;
-    struct next_hop_info **nhi;
+    uint32_t iptmp;
+
+    void **nhi;
     struct mb_node *next;
-    struct print_key key;
 
     //internal prefix first
     for (cidr=0;cidr<= STRIDE -1;cidr ++ ){
         for (bit=0;bit< (1<<cidr);bit++) {
             pos = count_inl_bitmap(bit,cidr);
             if (test_bitmap(node->internal, pos)) {
-                nhi = (struct next_hop_info**)node->child_ptr 
-                    - count_ones(node->internal, pos) - 1;
+                nhi = pointer_to_nhi(node, pos);
                 iptmp = ip;
                 iptmp |= bit << (left_bits - cidr);
-                key.ip = iptmp;
-                key.cidr = cur_cidr + cidr; 
-                print_ptr(&key, print_next_hop, *nhi); 
+                trie_traverse_func(iptmp, cur_cidr + cidr, *nhi, userdata);
             }
         }
     }
@@ -427,22 +412,85 @@ static void print_mb_node_iter(struct mb_node *node, uint32_t ip, uint32_t left_
     for (stride = 0; stride < (1<<STRIDE); stride ++ ){
         pos = count_enl_bitmap(stride);
         if (test_bitmap(node->external, pos)) {
-            //ip |= stride << (left_bits - STRIDE);
-            next = (struct mb_node *)node->child_ptr
-                + count_ones(node->external, pos);
+            next = next_child(node, pos);
 
-            print_mb_node_iter(next, 
+            bitmap_mb_node_iter(next, 
                     ip | (stride << (left_bits - STRIDE)), 
                     left_bits - STRIDE, cur_cidr + STRIDE, 
-                    print_next_hop); 
+                    trie_traverse_func, userdata); 
         }
     }
+
+}
+
+static void print_with_func(uint32_t ip, uint32_t cidr, void *nhi, void *userdata)
+{
+    struct print_key key;
+    key.ip = ip;
+    key.cidr = cidr;
+    void (*print_next_hop)(void* nhi); 
+    print_next_hop = userdata;
+
+    print_ptr(&key, print_next_hop, nhi);
 }
 
 
 void bitmap_print_all_prefix(struct mb_node *root, 
         void (*print_next_hop)(void *nhi)) 
 {
-    print_mb_node_iter(root, 0, LENGTH, 0, print_next_hop); 
+    bitmap_mb_node_iter(root, 0, LENGTH, 0, print_with_func, print_next_hop); 
 }
+
+
+#ifndef COMPRESS_NHI
+void bitmap_redund_rule(struct mb_node *node, uint32_t ip, uint32_t left_bits, 
+        uint32_t cur_cidr, uint32_t *redund_rule)
+{
+    int bit=0;
+    int cidr=0;
+    int stride = 0;
+    int pos;
+
+    void **nhi;
+    void *prev_nhi = NULL;
+    void *curr_nhi = NULL;
+
+    struct mb_node *next;
+
+    //internal prefix first
+    for (cidr=0;cidr<= STRIDE -1;cidr ++ ){
+        for (bit=0;bit< (1<<cidr);bit++) {
+            pos = count_inl_bitmap(bit,cidr);
+            if (test_bitmap(node->internal, pos)) {
+                nhi = pointer_to_nhi(node, pos);
+                if(prev_nhi == NULL) {
+                    prev_nhi = *nhi;
+                }
+                else {
+                    curr_nhi = *nhi;
+                    if(curr_nhi == prev_nhi) {
+                        *redund_rule = *redund_rule + 1;
+                    }
+                    else {
+                        prev_nhi = curr_nhi;
+                    }
+                }
+            }
+        }
+    }
+
+    for (stride = 0; stride < (1<<STRIDE); stride ++ ){
+        pos = count_enl_bitmap(stride);
+        if (test_bitmap(node->external, pos)) {
+            next = next_child(node, pos);
+
+            bitmap_redund_rule(next, 
+                    ip | (stride << (left_bits - STRIDE)), 
+                    left_bits - STRIDE, cur_cidr + STRIDE, 
+                    redund_rule);
+        }
+    }
+}
+#endif
+
 

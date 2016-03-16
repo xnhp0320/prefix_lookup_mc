@@ -23,8 +23,9 @@ int update_nodes(struct mm *mm, struct trace *t, int total)
     int node_need_to_del = 0;
     for(i=total;i >= 0;i--){
         if(i==total){
-            reduce_rule(mm, t[i].node, 
-                    count_ones((t[i].node)->internal, t[i].pos) + 1, i);
+            //reduce_rule(mm, t[i].node, 
+            //        count_ones((t[i].node)->internal, t[i].pos) + 1, i);
+            reduce_rule(mm, t[i].node, t[i].pos, i);
             clear_bitmap(&(t[i].node)->internal, (t[i].pos));
             if((t[i].node)->internal == 0 && (t[i].node)->external == 0)
             {
@@ -33,8 +34,9 @@ int update_nodes(struct mm *mm, struct trace *t, int total)
         }
         else{
             if(node_need_to_del){
-                reduce_child(mm, t[i].node, 
-                        count_ones((t[i].node)->external, t[i].pos), i);
+                //reduce_child(mm, t[i].node, 
+                //        count_ones((t[i].node)->external, t[i].pos), i);
+                reduce_child(mm, t[i].node, t[i].pos, i);
                 clear_bitmap(&(t[i].node)->external, (t[i].pos));
             }
             if((t[i].node)->internal == 0 && (t[i].node)->external == 0){

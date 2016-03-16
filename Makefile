@@ -304,7 +304,7 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LD = /usr/bin/ld -m elf_x86_64
-LDFLAGS = -static
+LDFLAGS = 
 LIBOBJS = 
 LIBS = 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
@@ -402,7 +402,7 @@ libfib_la_SOURCES = lib/bitmap.h \
 					lib/bitmap_v6.c \
 					lib/bitmap_v6.h 
 
-libfib_la_CFLAGS = -msse4.2 -O3 -g 
+libfib_la_CFLAGS = -msse4.2 -g -Wall -O3
 tbm_test_SOURCES = tbm/tbm.h \
 			 tbm/tbmv4.h \
 			 tbm/tbmv4.c \

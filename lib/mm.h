@@ -8,7 +8,7 @@
 
 
 #define ADD_ALLOCATOR(alloc) \
-    __attribute__((constructor)) void __allocator_register_##alloc() \
+    __attribute__((constructor)) void __allocator_register_##alloc(void) \
 { \
     int ret; \
     ret = add_allocator(&alloc); \

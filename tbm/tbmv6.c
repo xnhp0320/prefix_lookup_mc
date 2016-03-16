@@ -232,7 +232,7 @@ void tbmv6_delete_prefix(struct tbmv6_trie *trie, struct ip_v6 ip, int cidr,
 
                         (trie->init)[index + i].flags = (prefix_near << PREFIX_HI) | INIT_HAS_A_CHILD;
                         ond.func = destroy_nhi;
-                        bitmapv6_traverse_trie(&((trie->init)[index + i].e.node), ipzero, 0, overlap_nhi, &ond);
+                        bitmapv6_traverse_branch(&((trie->init)[index + i].e.node), ipzero, 0, overlap_nhi, &ond);
 #ifdef UP_STATS
 #endif
                     }

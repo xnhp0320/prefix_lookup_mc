@@ -19,6 +19,9 @@ int tbm_init_trie(struct tbm_trie *trie)
 
     trie->up_aux.external= 0;
     trie->up_aux.internal= 0;
+#ifdef COMPRESS_NHI
+    trie->up_aux.inl_mask = 0;
+#endif
     trie->up_aux.child_ptr=NULL;
 
     if (!trie->init) {
@@ -31,6 +34,24 @@ int tbm_init_trie(struct tbm_trie *trie)
 
     return 0;
 }
+
+
+#ifndef COMPRESS_NHI
+void tbm_redund_rule_count(struct tbm_trie *trie)
+{
+    int i = 0;
+    uint32_t redund_rule = 0;
+    for(; i < (1 << INITIAL_BITS); i++) {
+        if(!(trie->init[i].flags & INIT_HAS_A_CHILD)) {
+            continue;
+        }
+
+        bitmap_redund_rule(&trie->init[i].e.node, 
+                i << (LENGTH - INITIAL_BITS), LENGTH - INITIAL_BITS, INITIAL_BITS, &redund_rule);
+    }
+    printf("Redund Nhi %d\n", redund_rule);
+}
+#endif
 
 
 
@@ -95,7 +116,7 @@ int tbm_insert_prefix(struct tbm_trie *trie, uint32_t ip, int cidr, void *nhi)
         if ( (trie->init)[index].flags & INIT_HAS_A_CHILD) {
             // if the node is a ptr node, then we have to change the node to a trie node;
             // and add the entry
-            //if(index == 6521) {
+            //if(index == 6459) {
             //    printf("here\n");
             //}
             bitmap_insert_prefix(&((trie->init)[index].e.node), &trie->m,  
@@ -217,7 +238,7 @@ int tbm_delete_prefix(struct tbm_trie *trie,
                         (trie->init)[index + i].flags = (prefix_near << PREFIX_HI) | INIT_HAS_A_CHILD;
                         // we only delete the nhi once !!!!!
                         ond.func = destroy_nhi;
-                        bitmap_traverse_trie(&((trie->init)[index + i].e.node), 
+                        bitmap_traverse_branch(&((trie->init)[index + i].e.node), 
                                 0, 0, overlap_nhi, &ond); 
                     }
                 }
@@ -342,7 +363,7 @@ void tbm_destroy_trie(struct tbm_trie *trie, void (*destroy_nhi)(void* nhi))
     destroy_subtrie(&trie->up_aux, &trie->up_m, destroy_nhi, 0);
 
     for(i=0; i < (1<<INITIAL_BITS); i++) {
-        if(trie->init[i].flags == 0) {
+        if(!(trie->init[i].flags & INIT_HAS_A_CHILD)) {
             continue;
         }
         destroy_subtrie(&trie->init[i].e.node, &trie->m, NULL, 0);

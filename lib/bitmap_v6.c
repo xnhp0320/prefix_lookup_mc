@@ -82,14 +82,15 @@ int bitmapv6_insert_prefix(
             pos = count_inl_bitmap(stride, cidr);
             if(test_bitmap(node->internal, pos)) {
                 //already has the rule, need to update the rule
-                i = (void**)node->child_ptr - count_ones(node->internal, pos) -1;
+                //i = (void**)node->child_ptr - count_ones(node->internal, pos) -1;
+                i = pointer_to_nhi(node, pos);
                 *i = nhi;
                 return 1;
             }
             else {
                 update_inl_bitmap(node, pos);
                 //rules pos starting at 1, so add 1 to offset
-                pos = count_ones(node->internal, pos) + 1;
+                //pos = count_ones(node->internal, pos) + 1;
                 extend_rule(m, node, pos, level, nhi);
                 break;
             }
@@ -101,14 +102,15 @@ int bitmapv6_insert_prefix(
             pos = count_enl_bitmap(stride);
 
             if (test_bitmap(node->external, pos)){
-                node = (struct mb_node*) node->child_ptr + count_ones(node->external, pos); 
+                //node = (struct mb_node*) node->child_ptr + count_ones(node->external, pos); 
+                node = next_child(node, pos);
             } 
             else {
 
                 update_enl_bitmap(node, pos);
                 //iteration
                 //child pos starting at 0, so add 0 to offset
-                pos = count_ones(node->external, pos);
+                //pos = count_ones(node->external, pos);
                 node = extend_child(m, node, level, pos);
             }
             cidr -= STRIDE;
@@ -120,7 +122,7 @@ int bitmapv6_insert_prefix(
     return 0;
 }
 
-int bitmapv6_traverse_trie(struct mb_node *node, struct ip_v6 ip, int cidr,
+int bitmapv6_traverse_branch(struct mb_node *node, struct ip_v6 ip, int cidr,
         traverse_func func, void *user_data)
 {
 
@@ -151,7 +153,8 @@ int bitmapv6_traverse_trie(struct mb_node *node, struct ip_v6 ip, int cidr,
             if(ret != TRAVERSE_CONT)
                 break;
 
-            node = (struct mb_node*) node->child_ptr + count_ones(node->external, pos); 
+            //node = (struct mb_node*) node->child_ptr + count_ones(node->external, pos); 
+            node = next_child(node, pos);
 
             cidr -= STRIDE;
             //ip <<= STRIDE;
@@ -185,8 +188,9 @@ int bitmapv6_delete_prefix(struct mb_node *node, struct mm *m,
 
             if (destroy_nhi) {
                 void **nhi;
-                nhi = (void **)node->child_ptr - count_ones(node->internal,
-                        pos) - 1;
+                //nhi = (void **)node->child_ptr - count_ones(node->internal,
+                //        pos) - 1;
+                nhi = pointer_to_nhi(node, pos);
                 destroy_nhi(*nhi);
             }
 
@@ -205,7 +209,8 @@ int bitmapv6_delete_prefix(struct mb_node *node, struct mm *m,
             trace_node[i].node = node;
             trace_node[i].pos  = pos; 
 
-            node = (struct mb_node*) node->child_ptr + count_ones(node->external, pos); 
+            //node = (struct mb_node*) node->child_ptr + count_ones(node->external, pos); 
+            node = next_child(node, pos);
 
             cidr -= STRIDE;
             //ip <<= STRIDE;
@@ -222,7 +227,7 @@ int bitmapv6_prefix_exist(struct mb_node *node,
         struct ip_v6 ip, uint8_t cidr)
 {
     int ret;
-    ret = bitmapv6_traverse_trie(node, ip, cidr, prefix_exist_func, NULL);
+    ret = bitmapv6_traverse_branch(node, ip, cidr, prefix_exist_func, NULL);
     return ret;
 }
 
@@ -243,11 +248,13 @@ void * bitmapv6_do_search(struct mb_node *n, struct ip_v6 ip)
         pos = tree_function(n->internal, stride);
 
         if (pos != -1){
-            longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+            //longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+            longest = pointer_to_nhi(n, pos);
         }
         if (test_bitmap(n->external, count_enl_bitmap(stride))) {
             //printf("%d %p\n", depth, n);
-            n = (struct mb_node*)n->child_ptr + count_ones(n->external, count_enl_bitmap(stride));
+            //n = (struct mb_node*)n->child_ptr + count_ones(n->external, count_enl_bitmap(stride));
+            n = next_child(n, count_enl_bitmap(stride));
             lshift_ipv6(&ip, STRIDE);
             //ip = (uint32_t)(ip << STRIDE);
             //depth ++;
@@ -295,7 +302,8 @@ uint8_t bitmapv6_detect_overlap_generic(struct mb_node *n,
             curr_mask = step * STRIDE + mask;
             if (curr_mask < org_limit) {  
                 final_mask = curr_mask;
-                longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                //longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                longest = pointer_to_nhi(n, pos);
             }
         }
 
@@ -304,7 +312,8 @@ uint8_t bitmapv6_detect_overlap_generic(struct mb_node *n,
 
         if (test_bitmap(n->external, count_enl_bitmap(stride))) {
             //printf("%d %p\n", depth, n);
-            n = (struct mb_node*)n->child_ptr + count_ones(n->external, count_enl_bitmap(stride));
+            //n = (struct mb_node*)n->child_ptr + count_ones(n->external, count_enl_bitmap(stride));
+            n = next_child(n, count_enl_bitmap(stride));
             lshift_ipv6(&ip, STRIDE);
             //ip = (uint32_t)(ip << STRIDE);
         }
@@ -346,7 +355,8 @@ void * bitmapv6_do_search_lazy(struct mb_node *n, struct ip_v6 ip)
             travel_depth++;
             lazy_mark[travel_depth].lazy_p = n;
             lazy_mark[travel_depth].stride = stride;
-            n = (struct mb_node*)n->child_ptr + count_ones(n->external, count_enl_bitmap(stride));
+            //n = (struct mb_node*)n->child_ptr + count_ones(n->external, count_enl_bitmap(stride));
+            n = next_child(n, count_enl_bitmap(stride));
             //ip = (uint32_t)(ip << STRIDE);
             lshift_ipv6(&ip, STRIDE);
 //           depth ++;
@@ -366,7 +376,8 @@ void * bitmapv6_do_search_lazy(struct mb_node *n, struct ip_v6 ip)
                 stride = lazy_mark[travel_depth].stride;
                 pos = tree_function(n->internal, stride);
                 if (pos != -1) {
-                    longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                    //longest = (void**)n->child_ptr - count_ones(n->internal, pos) - 1;
+                    longest = pointer_to_nhi(n, pos);
                     //printf("2 check node %d\n", travel_depth);
                     //already the longest match 
                     goto out;
@@ -445,7 +456,8 @@ static void print_mb_node_iter(struct mb_node *node,
         for (bit=0; bit< (1<<cidr); bit++) {
             pos = count_inl_bitmap(bit,cidr);
             if (test_bitmap(node->internal, pos)) {
-                nhi = (void**)node->child_ptr - count_ones(node->internal, pos) - 1;
+                //nhi = (void**)node->child_ptr - count_ones(node->internal, pos) - 1;
+                nhi = pointer_to_nhi(node, pos);
 
                 //here the ugly code
                 stride_bits.iplo = bit;
@@ -478,7 +490,8 @@ static void print_mb_node_iter(struct mb_node *node,
             iptmp.iplo |= stride_bits.iplo;
             //end
             
-            next = (struct mb_node *)node->child_ptr + count_ones(node->external, pos);
+            //next = (struct mb_node *)node->child_ptr + count_ones(node->external, pos);
+            next = next_child(node, pos);
             print_mb_node_iter(next, iptmp, left_bits - STRIDE, cur_cidr + STRIDE, print_next_hop); 
         }
     }

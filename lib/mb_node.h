@@ -20,10 +20,14 @@
 #define POINT(X) ((struct mb_node*)(X))
 #define NODE_SIZE  (sizeof(struct mb_node))
 #define FAST_TREE_FUNCTION
+//#define COMPRESS_NHI
 
 struct mb_node{
     BITMAP_TYPE external;
     BITMAP_TYPE internal;
+#ifdef COMPRESS_NHI
+    BITMAP_TYPE inl_mask;
+#endif
     void     *child_ptr;
 }__attribute__((aligned(8)));
 
@@ -39,16 +43,8 @@ static inline uint32_t UP_CHILD(uint32_t x)
 }
 
 
-
-//count 1's from the right of the pos, not including the 1
-//pos = 0 ~ 64
-//pos == 64 means to counts how many 1's in the bitmap
-//I'm not sure this is a implementation specific.
 static inline int count_ones(BITMAP_TYPE bitmap, uint8_t pos)
 {
-//    if (pos == 0)
-//        return 0;
-//    return __builtin_popcountl((bitmap<<(64 - pos)));
 #if __SIZEOF_LONG__ == 8 
     return __builtin_popcountl(bitmap>>pos) - 1;
 #else
@@ -126,6 +122,33 @@ static inline void set_bitmap(BITMAP_TYPE *bitmap, int pos)
     *bitmap |= (1ULL<<pos);
 }
 
+static inline int
+raw_ctz(uint64_t n)
+{
+    /* With GCC 4.7 on 32-bit x86, if a 32-bit integer is passed as 'n', using
+     * a plain __builtin_ctzll() here always generates an out-of-line function
+     * call. The test below helps it to emit a single 'bsf' instruction. */
+    return (__builtin_constant_p(n <= UINT32_MAX) && n <= UINT32_MAX
+            ? __builtin_ctz(n)
+            : __builtin_ctzll(n));
+}
+
+static inline int ctz(BITMAP_TYPE n)
+{
+#if __SIZEOF_LONG__ == 8
+    return n ? raw_ctz(n) : 64;
+#else
+    return n ? raw_ctz(n) : 32;
+#endif
+}
+
+/* Returns the index of the rightmost 1-bit in 'x' (e.g. 01011000 => 3), or an
+ * undefined value if 'x' is 0. */
+static inline int rightmost_1bit_idx(BITMAP_TYPE x)
+{
+    return ctz(x);
+}
+
 
 static inline struct mb_node *next_child(struct mb_node *current, uint8_t pos)
 {
@@ -135,7 +158,11 @@ static inline struct mb_node *next_child(struct mb_node *current, uint8_t pos)
 //NHI next hop information
 static inline void **pointer_to_nhi(struct mb_node *current, uint8_t pos)
 {
+#ifndef COMPRESS_NHI
     return (void**)current->child_ptr - count_ones(current->internal, pos) - 1;
+#else
+    return (void**)current->child_ptr - count_ones(current->inl_mask, pos) - 1;
+#endif
 }
 
 void destroy_subtrie(struct mb_node *node, struct mm *m, void (*destroy_nhi)(void *nhi), int depth);

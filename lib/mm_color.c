@@ -10,15 +10,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define MEMORY_SIZE (16*1024*1024)
+#define MEMORY_SIZE (32*1024*1024)
 #define PAGE_SHIFT 12
 #define PAGE_SIZE (1<<PAGE_SHIFT)
 
 
 //----need chage when platform changed-------
-#define CACHE_OVERLAP (128*1024)
+#define CACHE_OVERLAP (32*1024)
 #define HPAGE_SIZE (2*1024*1024)
-#define PAGE_COLORS 32
+#define PAGE_COLORS 8 
 //-------------------------------------------
 
 #define PAGEMAP_MASK_PFN        (((uint64_t)1 << 55) - 1)
@@ -74,13 +74,13 @@ static int mc_init(struct mm *mm)
     struct mc_priv *m = mm_get_priv(mm);
 
     //8 colors
-    m->cs[0].size = 32 * 1024;
+    m->cs[0].size = 2 * 4 * 1024;
     //22 colors
-    m->cs[1].size = 22 * 4 * 1024;
+    m->cs[1].size = 4 * 4 * 1024;
     //2 colors
     m->cs[2].size = 2 * 4 * 1024;
 
-    m->fd = open("/mnt/hugetlb/mem", O_CREAT | O_RDWR, S_IRWXU);
+    m->fd = open("/mnt/huge/mem", O_CREAT | O_RDWR, S_IRWXU);
     if (m->fd < 0) {
         perror("open");
         return -1;
@@ -147,9 +147,6 @@ static int mc_init(struct mm *mm)
     }
 
 
-
-
-
     return 0;
 
 pfnerror:
@@ -158,9 +155,9 @@ merror:
     munmap(m->addr, MEMORY_SIZE); 
 error:
     close(m->fd); 
-    unlink("/mnt/hugetlb/mem");
-    return -1;
+    unlink("/mnt/huge/mem");
 
+    return -1;
 }
 
 static int lma_init(struct list_head *lma_list, struct lm_area *new_lma, 
@@ -278,7 +275,7 @@ static void *mc_alloc_node(struct mm *mm, uint32_t node_num, uint32_t level)
     void *ret = NULL;
 
     if(node_num == 0) {
-        printf("alloc 0\n");
+        //printf("alloc 0\n");
         return NULL;
     }
 
@@ -375,7 +372,7 @@ static int mc_uinit(struct mm *mm)
     munmap(m->addr, MEMORY_SIZE); 
     close(m->fd); 
     free(m->pfnbuf);
-    unlink("/mnt/hugetlb/mem"); 
+    unlink("/mnt/huge/mem"); 
     return 0; 
 }
 

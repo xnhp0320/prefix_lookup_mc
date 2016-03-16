@@ -52,7 +52,7 @@ void bitmapv6_print_all_prefix(struct mb_node *node,
 void bitmapv6_destroy_trie(struct mb_node *node, struct mm *m, 
         void (*destroy_nhi)(void* nhi));
 
-int bitmapv6_traverse_trie(struct mb_node *node, struct ip_v6 ip, int cidr,
+int bitmapv6_traverse_branch(struct mb_node *node, struct ip_v6 ip, int cidr,
         traverse_func func, void *user_data);
 
 void hton_ipv6(struct in6_addr *ip);

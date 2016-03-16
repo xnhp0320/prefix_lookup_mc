@@ -56,7 +56,7 @@ int mm_init(struct mm *m, int type)
 
     if(m->op->init) {
         m->op->priv = calloc(m->op->priv_size, 1);
-        ret = m->op->init(m->op->priv);
+        ret = m->op->init(m);
     }
     return ret;
 }
@@ -65,7 +65,7 @@ int mm_uinit(struct mm *m)
 {
     int ret = 0;
     if(m->op->uinit) {
-        ret = m->op->uinit(m->op->priv);
+        ret = m->op->uinit(m);
     }
 
     if(m->op->priv_size) {
@@ -82,8 +82,8 @@ void *alloc_node(struct mm *m, uint32_t node_num, uint32_t level)
     m->ms.node += node_num;
     m->ms.lmem[level] += node_num * NODE_SIZE;
     m->ms.lnode[level] += node_num;
-
-    return m->op->alloc_node(m, node_num, level);
+    void *ret = m->op->alloc_node(m, node_num, level);
+    return ret;
 }
 
 
