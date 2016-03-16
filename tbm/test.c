@@ -196,7 +196,7 @@ int del_routes(struct tbm_trie *trie, FILE *fp)
             //    printf("here\n");
             //}
             //insert_prefix(ip,cidr,(struct next_hop_info*)(key));
-            //if (i == 107081) {
+            //if (i == 188999) {
             //    printf("here\n");
             //}
             tbm_delete_prefix(trie, ip, cidr, NULL);
@@ -493,8 +493,8 @@ void ipv4_test()
     load_routes(&trie, fp);
     //load_fib(&trie, fp);
 
-    //test_lookup_valid(&trie);
-    test_lookup_valid_batch(&trie);
+    test_lookup_valid(&trie);
+    //test_lookup_valid_batch(&trie);
     test_random_ips(&trie);
     test_random_ips_batch(&trie);
     //mem_alloc_stat_v6();

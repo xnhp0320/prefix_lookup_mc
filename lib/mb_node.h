@@ -25,12 +25,15 @@
 struct mb_node{
     BITMAP_TYPE external;
     BITMAP_TYPE internal;
-#ifdef COMPRESS_NHI
-    BITMAP_TYPE inl_mask;
-#endif
     void     *child_ptr;
 }__attribute__((aligned(8)));
 
+
+static inline BITMAP_TYPE *get_inl_mask(struct mb_node *n)
+{
+    BITMAP_TYPE *inl_mask = (BITMAP_TYPE *)n->child_ptr - 1;
+    return inl_mask;
+}
 
 static inline uint32_t UP_RULE(uint32_t x)
 {
@@ -161,7 +164,7 @@ static inline void **pointer_to_nhi(struct mb_node *current, uint8_t pos)
 #ifndef COMPRESS_NHI
     return (void**)current->child_ptr - count_ones(current->internal, pos) - 1;
 #else
-    return (void**)current->child_ptr - count_ones(current->inl_mask, pos) - 1;
+    return (void**)current->child_ptr - count_ones(*get_inl_mask(current), pos) - 2;
 #endif
 }
 

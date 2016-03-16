@@ -19,9 +19,6 @@ int tbm_init_trie(struct tbm_trie *trie)
 
     trie->up_aux.external= 0;
     trie->up_aux.internal= 0;
-#ifdef COMPRESS_NHI
-    trie->up_aux.inl_mask = 0;
-#endif
     trie->up_aux.child_ptr=NULL;
 
     if (!trie->init) {
@@ -116,7 +113,7 @@ int tbm_insert_prefix(struct tbm_trie *trie, uint32_t ip, int cidr, void *nhi)
         if ( (trie->init)[index].flags & INIT_HAS_A_CHILD) {
             // if the node is a ptr node, then we have to change the node to a trie node;
             // and add the entry
-            //if(index == 6459) {
+            //if(index == 1036) {
             //    printf("here\n");
             //}
             bitmap_insert_prefix(&((trie->init)[index].e.node), &trie->m,  
@@ -170,8 +167,7 @@ static int overlap_nhi(struct mb_node *node,
         void ** nhi;
         struct overlap_nhi_data *ond  = (struct overlap_nhi_data *)(user_data);
 
-        nhi = (void **)node->child_ptr - 
-            count_ones(node->internal, pos) - 1; 
+        nhi = pointer_to_nhi(node, pos);
 
         if (ond->func)
             ond->func(*nhi);
@@ -219,6 +215,9 @@ int tbm_delete_prefix(struct tbm_trie *trie,
                 else {
                 //only possible prefix == cidr
                     if (prefix_near == 0){
+                        //if(index + i == 1036) {
+                        //    printf("here\n");
+                        //}
                         ret = bitmap_delete_prefix(
                                 &((trie->init)[index + i].e.node), 
                                 &trie->m, 
@@ -274,6 +273,9 @@ int tbm_delete_prefix(struct tbm_trie *trie,
         if ( (trie->init)[index].flags & INIT_HAS_A_CHILD) {
             // if the node is a ptr node, then we have to change the node to a trie node;
             // and add the entry
+            //if (index == 1036) {
+            //    printf("here\n");
+            //}
             ret = bitmap_delete_prefix(&((trie->init)[index].e.node), 
                     &trie->m, 
                     ip << INITIAL_BITS, 

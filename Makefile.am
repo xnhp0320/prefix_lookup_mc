@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 
-
+AM_CFLAGS=-O3
 bin_PROGRAMS = tbm_test
 lib_LTLIBRARIES = libfib.la
 libfib_la_SOURCES = lib/bitmap.h \

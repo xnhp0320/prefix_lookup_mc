@@ -387,6 +387,7 @@ target_alias =
 top_build_prefix = 
 top_builddir = .
 top_srcdir = .
+AM_CFLAGS = -O3
 lib_LTLIBRARIES = libfib.la
 libfib_la_SOURCES = lib/bitmap.h \
 					lib/bitmap.c \

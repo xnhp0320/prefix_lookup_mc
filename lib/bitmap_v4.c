@@ -83,7 +83,7 @@ int bitmap_insert_prefix(
                 return 1;
             }
             else {
-                update_inl_bitmap(node, pos);
+                //update_inl_bitmap(node, pos);
                 //rules pos starting at 1, so add 1 to offset
                 extend_rule(m, node, pos, level, nhi);
                 break;
@@ -98,7 +98,7 @@ int bitmap_insert_prefix(
                 node = next_child(node, pos);
             } 
             else {
-                update_enl_bitmap(node, pos);
+                //update_enl_bitmap(node, pos);
                 node = extend_child(m, node, level, pos);
             }
             cidr -= STRIDE;
