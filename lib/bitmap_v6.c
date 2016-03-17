@@ -88,7 +88,7 @@ int bitmapv6_insert_prefix(
                 return 1;
             }
             else {
-                update_inl_bitmap(node, pos);
+                //update_inl_bitmap(node, pos);
                 //rules pos starting at 1, so add 1 to offset
                 //pos = count_ones(node->internal, pos) + 1;
                 extend_rule(m, node, pos, level, nhi);
@@ -107,7 +107,7 @@ int bitmapv6_insert_prefix(
             } 
             else {
 
-                update_enl_bitmap(node, pos);
+                //update_enl_bitmap(node, pos);
                 //iteration
                 //child pos starting at 0, so add 0 to offset
                 //pos = count_ones(node->external, pos);

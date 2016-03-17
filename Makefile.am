@@ -3,7 +3,8 @@
 # All rights reserved.
 #
 
-AM_CFLAGS=-O3
+CFLAGS=-g
+AM_CFLAGS=
 bin_PROGRAMS = tbm_test
 lib_LTLIBRARIES = libfib.la
 libfib_la_SOURCES = lib/bitmap.h \
@@ -20,7 +21,7 @@ libfib_la_SOURCES = lib/bitmap.h \
 					lib/bitmap_v6.c \
 					lib/bitmap_v6.h 
 
-libfib_la_CFLAGS = -msse4.2 -g -Wall -O3
+libfib_la_CFLAGS = -msse4.2 -Wall -O3
 
 tbm_test_SOURCES= tbm/tbm.h \
 			 tbm/tbmv4.h \
@@ -31,7 +32,8 @@ tbm_test_SOURCES= tbm/tbm.h \
 
 tbm_test_LDADD = libfib.la
 tbm_test_DEPENDENCIES = libfib.la
-tbm_test_CFLAGS = -DTEST_CHECK
+tbm_test_CPPFLAGS = -DTEST_CHECK
+tbm_test_CFLAGS = -O2
 
 AUTOMAKE_OPTIONS = subdir-objects
 

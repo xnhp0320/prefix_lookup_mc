@@ -76,9 +76,9 @@ static int mc_init(struct mm *mm)
     //8 colors
     m->cs[0].size = 2 * 4 * 1024;
     //22 colors
-    m->cs[1].size = 4 * 4 * 1024;
+    m->cs[1].size = 5 * 4 * 1024;
     //2 colors
-    m->cs[2].size = 2 * 4 * 1024;
+    m->cs[2].size = 1 * 4 * 1024;
 
     m->fd = open("/mnt/huge/mem", O_CREAT | O_RDWR, S_IRWXU);
     if (m->fd < 0) {

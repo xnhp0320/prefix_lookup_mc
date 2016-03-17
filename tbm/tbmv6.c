@@ -156,8 +156,9 @@ static int overlap_nhi(struct mb_node *node, uint8_t stride, uint8_t pos,
         void ** nhi;
         struct overlap_nhi_data *ond  = (struct overlap_nhi_data *)(user_data);
 
-        nhi = (void **)node->child_ptr - 
-            count_ones(node->internal, pos) - 1; 
+        //nhi = (void **)node->child_ptr - 
+        //    count_ones(node->internal, pos) - 1; 
+        nhi = pointer_to_nhi(node, pos);
 
         if (ond->func)
             ond->func(*nhi);

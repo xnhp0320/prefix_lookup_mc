@@ -206,6 +206,7 @@ void *bitmap_do_search_lazy(struct mb_node *n, uint32_t ip)
             lazy_mark[travel_depth].lazy_p = n;
             lazy_mark[travel_depth].stride = stride;
             n = next_child(n, count_enl_bitmap(stride));
+            //__builtin_prefetch(pointer_to_nhi(n, 0)); 
             ip = (uint32_t)(ip << STRIDE);
         }
         else {
@@ -265,10 +266,11 @@ void bitmap_do_search_lazy_batch(struct mb_node *n[BATCH],
                 n[i] = next_child(n[i], count_enl_bitmap(stride[i]));
                 ip[i] = (uint32_t)(ip[i] << STRIDE);
                 stride[i] = ip[i] >> (LENGTH - STRIDE);
-                __builtin_prefetch(n[i]); 
+                __builtin_prefetch(n[i], 0); 
             }
             else {
                 endcnt |= (1ULL << i);
+                //__builtin_prefetch(pointer_to_nhi(n[i], 0));
             }
         }
     }

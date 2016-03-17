@@ -282,7 +282,7 @@ AUTOMAKE = ${SHELL} /home/hepeng/prefix_lookup_mc/missing automake-1.14
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2
+CFLAGS = -g
 CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
@@ -387,7 +387,7 @@ target_alias =
 top_build_prefix = 
 top_builddir = .
 top_srcdir = .
-AM_CFLAGS = -O3
+AM_CFLAGS = 
 lib_LTLIBRARIES = libfib.la
 libfib_la_SOURCES = lib/bitmap.h \
 					lib/bitmap.c \
@@ -403,7 +403,7 @@ libfib_la_SOURCES = lib/bitmap.h \
 					lib/bitmap_v6.c \
 					lib/bitmap_v6.h 
 
-libfib_la_CFLAGS = -msse4.2 -g -Wall -O3
+libfib_la_CFLAGS = -msse4.2 -Wall -O3
 tbm_test_SOURCES = tbm/tbm.h \
 			 tbm/tbmv4.h \
 			 tbm/tbmv4.c \
@@ -413,7 +413,8 @@ tbm_test_SOURCES = tbm/tbm.h \
 
 tbm_test_LDADD = libfib.la
 tbm_test_DEPENDENCIES = libfib.la
-tbm_test_CFLAGS = -DTEST_CHECK
+tbm_test_CPPFLAGS = -DTEST_CHECK
+tbm_test_CFLAGS = -O2
 AUTOMAKE_OPTIONS = subdir-objects
 CLEANFILES = *~
 all: config.h
@@ -677,46 +678,46 @@ lib/libfib_la-bitmap_v6.lo: lib/bitmap_v6.c
 #	$(AM_V_CC_no)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libfib_la_CFLAGS) $(CFLAGS) -c -o lib/libfib_la-bitmap_v6.lo `test -f 'lib/bitmap_v6.c' || echo '$(srcdir)/'`lib/bitmap_v6.c
 
 tbm/tbm_test-tbmv4.o: tbm/tbmv4.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv4.o -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv4.Tpo -c -o tbm/tbm_test-tbmv4.o `test -f 'tbm/tbmv4.c' || echo '$(srcdir)/'`tbm/tbmv4.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv4.o -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv4.Tpo -c -o tbm/tbm_test-tbmv4.o `test -f 'tbm/tbmv4.c' || echo '$(srcdir)/'`tbm/tbmv4.c
 	$(AM_V_at)$(am__mv) tbm/$(DEPDIR)/tbm_test-tbmv4.Tpo tbm/$(DEPDIR)/tbm_test-tbmv4.Po
 #	$(AM_V_CC)source='tbm/tbmv4.c' object='tbm/tbm_test-tbmv4.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv4.o `test -f 'tbm/tbmv4.c' || echo '$(srcdir)/'`tbm/tbmv4.c
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv4.o `test -f 'tbm/tbmv4.c' || echo '$(srcdir)/'`tbm/tbmv4.c
 
 tbm/tbm_test-tbmv4.obj: tbm/tbmv4.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv4.obj -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv4.Tpo -c -o tbm/tbm_test-tbmv4.obj `if test -f 'tbm/tbmv4.c'; then $(CYGPATH_W) 'tbm/tbmv4.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv4.c'; fi`
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv4.obj -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv4.Tpo -c -o tbm/tbm_test-tbmv4.obj `if test -f 'tbm/tbmv4.c'; then $(CYGPATH_W) 'tbm/tbmv4.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv4.c'; fi`
 	$(AM_V_at)$(am__mv) tbm/$(DEPDIR)/tbm_test-tbmv4.Tpo tbm/$(DEPDIR)/tbm_test-tbmv4.Po
 #	$(AM_V_CC)source='tbm/tbmv4.c' object='tbm/tbm_test-tbmv4.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv4.obj `if test -f 'tbm/tbmv4.c'; then $(CYGPATH_W) 'tbm/tbmv4.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv4.c'; fi`
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv4.obj `if test -f 'tbm/tbmv4.c'; then $(CYGPATH_W) 'tbm/tbmv4.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv4.c'; fi`
 
 tbm/tbm_test-tbmv6.o: tbm/tbmv6.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv6.o -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv6.Tpo -c -o tbm/tbm_test-tbmv6.o `test -f 'tbm/tbmv6.c' || echo '$(srcdir)/'`tbm/tbmv6.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv6.o -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv6.Tpo -c -o tbm/tbm_test-tbmv6.o `test -f 'tbm/tbmv6.c' || echo '$(srcdir)/'`tbm/tbmv6.c
 	$(AM_V_at)$(am__mv) tbm/$(DEPDIR)/tbm_test-tbmv6.Tpo tbm/$(DEPDIR)/tbm_test-tbmv6.Po
 #	$(AM_V_CC)source='tbm/tbmv6.c' object='tbm/tbm_test-tbmv6.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv6.o `test -f 'tbm/tbmv6.c' || echo '$(srcdir)/'`tbm/tbmv6.c
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv6.o `test -f 'tbm/tbmv6.c' || echo '$(srcdir)/'`tbm/tbmv6.c
 
 tbm/tbm_test-tbmv6.obj: tbm/tbmv6.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv6.obj -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv6.Tpo -c -o tbm/tbm_test-tbmv6.obj `if test -f 'tbm/tbmv6.c'; then $(CYGPATH_W) 'tbm/tbmv6.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv6.c'; fi`
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-tbmv6.obj -MD -MP -MF tbm/$(DEPDIR)/tbm_test-tbmv6.Tpo -c -o tbm/tbm_test-tbmv6.obj `if test -f 'tbm/tbmv6.c'; then $(CYGPATH_W) 'tbm/tbmv6.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv6.c'; fi`
 	$(AM_V_at)$(am__mv) tbm/$(DEPDIR)/tbm_test-tbmv6.Tpo tbm/$(DEPDIR)/tbm_test-tbmv6.Po
 #	$(AM_V_CC)source='tbm/tbmv6.c' object='tbm/tbm_test-tbmv6.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv6.obj `if test -f 'tbm/tbmv6.c'; then $(CYGPATH_W) 'tbm/tbmv6.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv6.c'; fi`
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-tbmv6.obj `if test -f 'tbm/tbmv6.c'; then $(CYGPATH_W) 'tbm/tbmv6.c'; else $(CYGPATH_W) '$(srcdir)/tbm/tbmv6.c'; fi`
 
 tbm/tbm_test-test.o: tbm/test.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-test.o -MD -MP -MF tbm/$(DEPDIR)/tbm_test-test.Tpo -c -o tbm/tbm_test-test.o `test -f 'tbm/test.c' || echo '$(srcdir)/'`tbm/test.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-test.o -MD -MP -MF tbm/$(DEPDIR)/tbm_test-test.Tpo -c -o tbm/tbm_test-test.o `test -f 'tbm/test.c' || echo '$(srcdir)/'`tbm/test.c
 	$(AM_V_at)$(am__mv) tbm/$(DEPDIR)/tbm_test-test.Tpo tbm/$(DEPDIR)/tbm_test-test.Po
 #	$(AM_V_CC)source='tbm/test.c' object='tbm/tbm_test-test.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-test.o `test -f 'tbm/test.c' || echo '$(srcdir)/'`tbm/test.c
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-test.o `test -f 'tbm/test.c' || echo '$(srcdir)/'`tbm/test.c
 
 tbm/tbm_test-test.obj: tbm/test.c
-	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-test.obj -MD -MP -MF tbm/$(DEPDIR)/tbm_test-test.Tpo -c -o tbm/tbm_test-test.obj `if test -f 'tbm/test.c'; then $(CYGPATH_W) 'tbm/test.c'; else $(CYGPATH_W) '$(srcdir)/tbm/test.c'; fi`
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -MT tbm/tbm_test-test.obj -MD -MP -MF tbm/$(DEPDIR)/tbm_test-test.Tpo -c -o tbm/tbm_test-test.obj `if test -f 'tbm/test.c'; then $(CYGPATH_W) 'tbm/test.c'; else $(CYGPATH_W) '$(srcdir)/tbm/test.c'; fi`
 	$(AM_V_at)$(am__mv) tbm/$(DEPDIR)/tbm_test-test.Tpo tbm/$(DEPDIR)/tbm_test-test.Po
 #	$(AM_V_CC)source='tbm/test.c' object='tbm/tbm_test-test.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-test.obj `if test -f 'tbm/test.c'; then $(CYGPATH_W) 'tbm/test.c'; else $(CYGPATH_W) '$(srcdir)/tbm/test.c'; fi`
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tbm_test_CPPFLAGS) $(CPPFLAGS) $(tbm_test_CFLAGS) $(CFLAGS) -c -o tbm/tbm_test-test.obj `if test -f 'tbm/test.c'; then $(CYGPATH_W) 'tbm/test.c'; else $(CYGPATH_W) '$(srcdir)/tbm/test.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -291,6 +291,63 @@ int del_routes(struct tbm_trie *trie, FILE *fp)
 
 }
 
+
+#define u32 uint32_t 
+
+int load_fib(struct tbm_trie *root, FILE *fp)
+{
+    int i = 0;
+    char *line = NULL;
+    ssize_t read = 0;
+    size_t len = 0;
+    
+    uint32_t ip = 0;
+    uint64_t key = 1;
+
+    int prefix[4];
+    int prefixlen;
+    int nexthop[4];
+
+    struct timespec tp_b;
+    struct timespec tp_a;
+    int ret;
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_b);
+
+    while((read = getline(&line, &len, fp)) != -1){
+        ret = sscanf(line, "%d.%d.%d.%d/%d %d.%d.%d.%d", &prefix[0], &prefix[1],
+                     &prefix[2], &prefix[3], &prefixlen, &nexthop[0],
+                     &nexthop[1], &nexthop[2], &nexthop[3]);
+        if ( ret < 0 ) {
+            return -1;
+        }
+
+        /* Convert to u32 */
+        ip = ((u32)prefix[0] << 24) + ((u32)prefix[1] << 16)
+            + ((u32)prefix[2] << 8) + (u32)prefix[3];
+        key = ((u32)nexthop[0] << 24) + ((u32)nexthop[1] << 16)
+            + ((u32)nexthop[2] << 8) + (u32)nexthop[3];
+
+        tbm_insert_prefix(root, ip, prefixlen, (void*)key); 
+      
+        i++;
+        //if (i == 8179) {
+        //    printf("here\n");
+        //}
+
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &tp_a);
+    long nano = (tp_a.tv_nsec > tp_b.tv_nsec) ? (tp_a.tv_nsec -tp_b.tv_nsec) : (tp_a.tv_nsec - tp_b.tv_nsec + 1000000000ULL);
+    printf("sec %ld, nano %ld\n", tp_b.tv_sec, tp_b.tv_nsec);
+    printf("sec %ld, nano %ld\n", tp_a.tv_sec, tp_a.tv_nsec);
+    printf("nano %ld\n", nano);
+    printf("per insert %.2f, speed %.2f\n", (double)nano/(i), 1e9/((double)nano/(i)));
+
+    printf("load routes %d\n", i/2 );
+    return i ;
+}
+
 int load_routes(struct tbm_trie *root, FILE *fp)
 {
     int i = 0;
@@ -482,6 +539,7 @@ void ipv4_test()
 {
     //FILE *fp = fopen("rrc00(2013080808).txt.port","r");
     FILE *fp = fopen("ret_5","r");
+    //FILE *fp = fopen("linx-rib.20141217.0000-p52.txt","r");
     if (fp == NULL)
         exit(-1);
     
@@ -494,7 +552,7 @@ void ipv4_test()
     //load_fib(&trie, fp);
 
     test_lookup_valid(&trie);
-    //test_lookup_valid_batch(&trie);
+    test_lookup_valid_batch(&trie);
     test_random_ips(&trie);
     test_random_ips_batch(&trie);
     //mem_alloc_stat_v6();
@@ -502,8 +560,8 @@ void ipv4_test()
     //rewind(fp);
 
     //tbm_print_all_prefix(&trie, print_nhi);
-    mm_profile(&trie.m);
-    del_routes(&trie, fp);
+    //mm_profile(&trie.m);
+    //del_routes(&trie, fp);
     tbm_destroy_trie(&trie, NULL);
     //mc_profile(&trie.mm);
     

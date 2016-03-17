@@ -26,7 +26,7 @@ int tbm_init_trie(struct tbm_trie *trie)
         exit(-1);
     }
     
-    mm_init(&trie->m, MEM_ALLOC_SIMPLE);
+    mm_init(&trie->m, MEM_ALLOC_COLOR);
     mm_init(&trie->up_m, MEM_ALLOC_SIMPLE);
 
     return 0;
