@@ -4,22 +4,22 @@
 #
 
 AC_PREREQ(2.59)
-AC_INIT([TBM], [0.1.0], [asai@jar.jp])
-#AC_CONFIG_SRCDIR([])
+AC_INIT([TBM], [0.1.0], [xnhp0320@126.com])
 AC_CONFIG_HEADER([config.h])
 
 AM_INIT_AUTOMAKE
 AC_SUBST(SUBDIRS)
 
 # arguments
-AC_ARG_ENABLE(debug,
-  [  --enable-debug    Turn on debugging [default no]],
-  [case "${enableval}" in
-    yes) debug=yes; AC_MSG_RESULT(Checking for debug... yes); AC_DEFINE(DEBUG, 1, debugging option) ;;
-    no)  debug=no;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-  esac],[debug=no])
-AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
+
+#AC_ARG_ENABLE(debug,
+#  [  --enable-debug    Turn on debugging [default no]],
+#  [case "${enableval}" in
+#    yes) debug=yes; AC_MSG_RESULT(Checking for debug... yes); AC_DEFINE(DEBUG, 1, debugging option) ;;
+#    no)  debug=no;;
+#    *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+#  esac],[debug=no])
+#AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 # Checks for programs.
 AC_PROG_CC

@@ -3,7 +3,6 @@
 # All rights reserved.
 #
 
-CFLAGS=-g
 AM_CFLAGS=
 bin_PROGRAMS = tbm_test
 lib_LTLIBRARIES = libfib.la
